@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QBK BĐS Video</title>
+<style>
+:root{--bg:#0b0f1a;--panel:#121829;--panel2:#182036;--line:#26304a;--txt:#e6ebf5;--mut:#8d98b3;
+--gold:#ffc247;--blue:#5fa8ff;--ruby:#ff5d73;--ok:#3ddc97;--warn:#ffb020;--r:14px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 "Segoe UI","Helvetica Neue",Arial,sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line);background:#0d1322;position:sticky;top:0;z-index:5}
+.logo{font-weight:800;letter-spacing:.5px;font-size:17px}.logo b{color:var(--gold)}
+.steps{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.step{padding:6px 12px;border-radius:999px;background:var(--panel);color:var(--mut);font-size:12px;border:1px solid var(--line)}
+.step.on{color:#1a1200;background:var(--gold);border-color:var(--gold);font-weight:700}
+.step.done{color:var(--ok);border-color:#1f5a45}
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 340px;gap:18px;padding:18px 22px;max-width:1500px;margin:auto}
+@media(max-width:1180px){main{grid-template-columns:1fr 1fr}.col3{grid-column:1/-1}}
+@media(max-width:760px){main{grid-template-columns:1fr;padding:16px}.steps{display:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:18px}
+.card h2{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:8px}
+.card h2 .n{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#1a1200;display:grid;place-items:center;font-size:12px}
+.sub{color:var(--mut);font-size:12px;margin:0 0 12px}
+.opt{font-size:11px;color:var(--mut);border:1px solid var(--line);padding:1px 7px;border-radius:999px;font-weight:400}
+label{display:block;font-size:12px;color:var(--mut);margin:8px 0 4px}
+input,textarea,select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 11px;font:inherit}
+textarea{min-height:150px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:2px solid #ffc24766;border-color:var(--gold)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.drop{border:2px dashed #34405f;border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:.15s;background:#0f1525}
+.drop:hover,.drop.over{border-color:var(--gold);background:#1a1a14}
+.drop big{display:block;font-size:28px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:12px}
+.th{position:relative;aspect-ratio:9/12;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.th img,.th video{width:100%;height:100%;object-fit:cover;display:block}
+.th .tag{position:absolute;left:5px;top:5px;font-size:10px;background:#000a;padding:1px 6px;border-radius:6px}
+.th .ix{position:absolute;right:5px;top:5px;font-size:10px;background:var(--gold);color:#1a1200;padding:1px 6px;border-radius:6px;font-weight:700}
+.th .ctl{position:absolute;inset:auto 0 0 0;display:flex;justify-content:space-between;background:linear-gradient(transparent,#000c);padding:12px 4px 4px}
+.th button{background:#0008;border:0;color:#fff;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:5px 10px;border-radius:999px;cursor:pointer;font-size:12px}
+.chip.on{border-color:var(--gold);color:var(--gold)}
+.btn{border:0;border-radius:12px;padding:12px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.pri{background:linear-gradient(180deg,#ffd94f,#d9a31c);color:#2a1a00;width:100%;font-size:15px;box-shadow:0 6px 20px #d9a31c33}
+.btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.agents{display:flex;flex-direction:column;gap:8px}
+.ag{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.ag .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;background:#0d1322}
+.ag .nm{font-weight:700;font-size:13px}.ag .ds{font-size:11px;color:var(--mut)}
+.ag .stt{font-size:11px;padding:2px 8px;border-radius:999px;background:#0d1322;color:var(--mut);white-space:nowrap}
+.ag.run{border-color:var(--gold)}.ag.run .stt{color:var(--gold)}
+.ag.ok .stt{color:var(--ok)}.ag.skip .stt{color:var(--warn)}.ag.err .stt{color:var(--ruby)}
+.bar{height:4px;background:#0d1322;border-radius:4px;overflow:hidden;grid-column:1/-1}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s}
+.log{margin-top:10px;background:#070a12;border:1px solid var(--line);border-radius:10px;padding:10px;height:150px;overflow:auto;font:11.5px/1.5 ui-monospace,Consolas,monospace;color:#b7c2dc}
+.log .a{color:var(--gold)}
+.phone{margin:auto;width:min(100%,300px);aspect-ratio:9/16;border-radius:26px;border:8px solid #1d2438;background:#000;overflow:hidden;position:relative;box-shadow:0 20px 50px #0008}
+.phone canvas,.phone video{width:100%;height:100%;display:block;object-fit:contain;background:#000}
+.phone .ph{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--mut);padding:20px;font-size:13px}
+.pv-ctl{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.exp{display:flex;flex-direction:column;gap:8px}
+.meta{font-size:12px;color:var(--mut);display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0}
+.meta b{color:var(--txt);font-weight:600}
+.note{font-size:11.5px;color:var(--mut);margin-top:8px}
+.qa{font-size:12px;margin:6px 0 0;padding-left:18px}.qa li{margin:2px 0}
+.qa .pass{color:var(--ok)}.qa .fail{color:var(--warn)}
+details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">QBK <b>BĐS</b> Video</div>
+  <div class="steps" id="steps">
+    <span class="step on">1 · Tải lên</span><span class="step">2 · Kịch bản</span><span class="step">3 · Agent dựng</span><span class="step">4 · Xuất video</span>
+  </div>
+</header>
+<main>
+  <!-- COL 1: upload + info -->
+  <section>
+    <div class="card">
+      <h2><span class="n">1</span>Tải ảnh, video lên</h2>
+      <p class="sub">Ảnh phối cảnh, ảnh drone, nội thất, tiện ích hoặc clip quay thực tế. Kéo để thả, sắp xếp thứ tự cảnh bằng mũi tên.</p>
+      <div class="drop" id="drop"><big>⬆</big><b>Kéo thả hoặc bấm để chọn file</b><div class="sub" style="margin:4px 0 0">JPG, PNG, WEBP, MP4, MOV, WEBM</div></div>
+      <input type="file" id="file" accept="image/*,video/*" multiple hidden>
+      <div class="thumbs" id="thumbs"></div>
+    </div>
+    <div class="card">
+      <h2>Thông tin dự án</h2>
+      <div class="row">
+        <div><label>Tên dự án</label><input id="pName" placeholder="VD: HAPPY ONE ELITE"></div>
+        <div><label>Khu vực</label><input id="pArea" placeholder="VD: TAM BÌNH · THỦ ĐỨC"></div>
+      </div>
+      <div class="row">
+        <div><label>Câu kêu gọi (CTA)</label><input id="pCta" placeholder="LIÊN HỆ NHẬN THÔNG TIN"></div>
+        <div><label>Hotline / ghi chú cuối</label><input id="pNote" placeholder="0909 xxx xxx"></div>
+      </div>
+      <details>
+        <summary>Cảnh bản đồ vị trí (không bắt buộc) — agent Bản đồ</summary>
+        <div class="row">
+          <div><label>Vĩ độ (lat)</label><input id="pLat" placeholder="10.8705"></div>
+          <div><label>Kinh độ (lon)</label><input id="pLon" placeholder="106.7380"></div>
+        </div>
+        <label>Tiện ích lân cận (mỗi dòng: loại | tên)</label>
+        <textarea id="pPois" style="min-height:80px" placeholder="Y TẾ | BV Hoàn Mỹ Thủ Đức&#10;MUA SẮM | Vincom Plaza Thủ Đức&#10;KẾT NỐI | Sân bay Tân Sơn Nhất"></textarea>
+        <p class="note">Cần tọa độ thật, app không tự bịa vị trí. Cảnh bản đồ vệ tinh dùng skill map-location-video, chạy ở backend (giai đoạn 2).</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- COL 2: script + finish + agents -->
+  <section>
+    <div class="card">
+      <h2><span class="n">2</span>Kịch bản <span class="opt">không bắt buộc</span></h2>
+      <p class="sub">Mỗi dòng là chữ hiện trên một cảnh. Bỏ trống thì agent Biên kịch tự viết theo phong cách đã chọn.</p>
+      <div class="chips" id="tone">
+        <span class="chip on" data-v="sang">Sang trọng</span><span class="chip" data-v="dt">Đầu tư</span><span class="chip" data-v="gd">Gia đình</span><span class="chip" data-v="tt">TikTok bắt trend</span>
+      </div>
+      <textarea id="script" placeholder="Ngay cửa nhà là trung tâm&#10;5 phút tới Vincom Thủ Đức&#10;Hồ bơi tràn bờ tầng thượng&#10;Sổ hồng riêng từng căn"></textarea>
+      <div class="chips"><span class="chip" id="btnSample">Dùng kịch bản mẫu</span><span class="chip" id="btnClear">Xóa</span></div>
+    </div>
+    <button class="btn pri" id="btnGo" disabled>✔ Hoàn tất &amp; tạo video</button>
+    <p class="note" id="goHint" style="text-align:center">Tải lên ít nhất 1 ảnh hoặc video để bắt đầu.</p>
+    <div class="card" style="margin-top:14px">
+      <h2><span class="n">3</span>Đội agent làm việc</h2>
+      <p class="sub">6 agent: Điều phối giao việc, ba agent giữa chạy song song, Dựng hình xuất video, Kiểm duyệt rà lỗi.</p>
+      <div class="agents" id="agents"></div>
+      <div class="log" id="log"><span class="a">[hệ thống]</span> Sẵn sàng.</div>
+    </div>
+  </section>
+
+  <!-- COL 3: preview + export -->
+  <section class="col3">
+    <div class="card">
+      <h2>Xem trước 9:16</h2>
+      <div class="phone" id="phone"><canvas id="cv" width="576" height="1024"></canvas><div class="ph" id="ph">Video sẽ hiện ở đây sau khi bấm Hoàn tất.<br><br>Bấm "Xem nhanh" để xem thử bố cục từ media đã tải.</div></div>
+      <div class="pv-ctl"><button class="btn sec" id="btnPreview" disabled>▶ Xem nhanh</button><button class="btn sec" id="btnStop" disabled>■ Dừng</button></div>
+    </div>
+    <div class="card">
+      <h2><span class="n">4</span>Xuất video</h2>
+      <div class="exp">
+        <div class="row">
+          <div><label>Định dạng</label><select id="fmt"><option value="webm">WebM (trong trình duyệt)</option><option value="mp4" disabled>MP4 H.264 (cần backend)</option></select></div>
+          <div><label>Độ phân giải</label><select id="res"><option>576 × 1024</option><option disabled>1080 × 1920 (backend)</option></select></div>
+        </div>
+        <div class="meta" id="meta"><span>Trạng thái</span><b>Chưa có video</b></div>
+        <ul class="qa" id="qa"></ul>
+        <button class="btn pri" id="btnDl" disabled>⬇ Tải video</button>
+        <p class="note">Video ghi theo thời gian thực, giữ tab đang mở khi dựng. Muốn MP4: <code>ffmpeg -i in.webm -c:v libx264 -crf 20 -pix_fmt yuv420p out.mp4</code></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const W=576,H=1024,FPS=30,M=36,CARD_B=H-84;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const ease=u=>{u=clamp(u);return u*u*(3-2*u);};
+const FONT=(w,s)=>`${w} ${s}px "Segoe UI","Helvetica Neue",Arial,sans-serif`;
+const S={media:[],tone:'sang',busy:false,blob:null,url:null,plan:null,stop:false};
+
+/* ---------- AGENTS ---------- */
+const AGENTS=[
+ {id:'orc',ic:'🧭',nm:'Điều phối',ds:'Nhận job, chia việc, gộp kết quả'},
+ {id:'med',ic:'🖼',nm:'Phân tích media',ds:'Phân loại ảnh/video, chọn cảnh, thứ tự'},
+ {id:'wri',ic:'✍',nm:'Biên kịch',ds:'Hook 3s, tiêu đề từng cảnh, CTA'},
+ {id:'map',ic:'🗺',nm:'Bản đồ & vị trí',ds:'Skill map-location-video (Esri, OSRM)'},
+ {id:'cmp',ic:'🎬',nm:'Dựng hình & xuất',ds:'Ken Burns, chữ, chuyển cảnh, ghi video'},
+ {id:'qa', ic:'🛡',nm:'Kiểm duyệt (QA)',ds:'Vùng an toàn, khung trễ, dung lượng'}];
+const agBox=$('#agents');
+AGENTS.forEach(a=>{const d=document.createElement('div');d.className='ag';d.id='ag-'+a.id;
+ d.innerHTML=`<div class="ic">${a.ic}</div><div><div class="nm">${a.nm}</div><div class="ds">${a.ds}</div></div><span class="stt">Chờ</span><div class="bar"><i></i></div>`;agBox.appendChild(d);});
+const LBL={run:'Đang chạy',ok:'Xong',skip:'Bỏ qua',err:'Lỗi',idle:'Chờ'};
+function ag(id,st,p){const d=$('#ag-'+id);d.className='ag '+(st==='idle'?'':st);d.querySelector('.stt').textContent=LBL[st];if(p!=null)d.querySelector('.bar i').style.width=(p*100)+'%';}
+function log(who,msg){const l=$('#log');l.innerHTML+=`<br><span class="a">[${who}]</span> ${msg}`;l.scrollTop=l.scrollHeight;}
+function steps(n){[...document.querySelectorAll('.step')].forEach((s,i)=>s.className='step'+(i<n?' done':i===n?' on':''));}
+
+/* ---------- UPLOAD ---------- */
+const drop=$('#drop'),fileIn=$('#file');
+drop.onclick=()=>fileIn.click();
+fileIn.onchange=e=>{addFiles(e.target.files);fileIn.value='';};
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+let uid=0;
+async function addFiles(list){
+ for(const f of [...list]){
+  const type=f.type.startsWith('video')?'video':f.type.startsWith('image')?'image':null;if(!type)continue;
+  const url=URL.createObjectURL(f);const it={id:++uid,type,name:f.name,url,size:f.size};
+  if(type==='image'){it.el=new Image();it.el.src=url;await it.el.decode().catch(()=>{});it.w=it.el.naturalWidth;it.h=it.el.naturalHeight;}
+  else{const v=document.createElement('video');v.src=url;v.muted=true;v.playsInline=true;v.preload='auto';
+   await new Promise(r=>{v.onloadeddata=r;v.onerror=r;});it.el=v;it.w=v.videoWidth;it.h=v.videoHeight;it.dur=v.duration||4;}
+  S.media.push(it);
+ }
+ renderThumbs();
+}
+function renderThumbs(){
+ const box=$('#thumbs');box.innerHTML='';
+ S.media.forEach((m,i)=>{const d=document.createElement('div');d.className='th';
+  d.innerHTML=(m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`)+
+  `<span class="tag">${m.type==='image'?'Ảnh':'Video '+Math.round(m.dur)+'s'}</span><span class="ix">${i+1}</span>
+   <div class="ctl"><button data-a="l">◀</button><button data-a="x">✕</button><button data-a="r">▶</button></div>`;
+  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{const a=b.dataset.a;
+   if(a==='x'){S.media.splice(i,1);}else{const j=a==='l'?i-1:i+1;if(j<0||j>=S.media.length)return;[S.media[i],S.media[j]]=[S.media[j],S.media[i]];}
+   renderThumbs();});
+  box.appendChild(d);});
+ const has=S.media.length>0;$('#btnGo').disabled=!has||S.busy;$('#btnPreview').disabled=!has||S.busy;
+ $('#goHint').textContent=has?`${S.media.length} file · video khoảng ${Math.round(buildPlan().T)} giây`:'Tải lên ít nhất 1 ảnh hoặc video để bắt đầu.';
+ if(has)steps(S.blob?3:1);
+}
+
+/* ---------- SCRIPT ---------- */
+document.querySelectorAll('#tone .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#tone .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');S.tone=c.dataset.v;});
+const TONES={
+ sang:['Không gian sống đẳng cấp','Tầm nhìn khoáng đạt mỗi sáng','Tiện ích chuẩn resort','Hoàn thiện tinh tế từng chi tiết','Vị trí trung tâm kết nối','Sở hữu ngay hôm nay'],
+ dt:['Vị trí đón đầu hạ tầng','Tiềm năng tăng giá rõ ràng','Pháp lý minh bạch','Khai thác cho thuê ngay','Thanh toán linh hoạt','Số lượng có hạn'],
+ gd:['Tổ ấm cho cả gia đình','Trường học ngay cạnh nhà','Công viên xanh cho con chơi','An ninh 24/7','Chợ, siêu thị vài phút','Về nhà là bình yên'],
+ tt:['Căn này có gì mà hot vậy?','Nhìn view này đi!','Tiện ích xịn sò','Đi đâu cũng gần','Giá chỉ từ ... tỷ','Comment "INFO" nhận giá']};
+$('#btnSample').onclick=()=>{$('#script').value=TONES[S.tone].join('\n');};
+$('#btnClear').onclick=()=>{$('#script').value='';};
+
+/* ---------- PLAN ---------- */
+function info(){return{name:$('#pName').value.trim()||'DỰ ÁN CỦA BẠN',area:$('#pArea').value.trim(),cta:$('#pCta').value.trim()||'LIÊN HỆ NHẬN THÔNG TIN',
+ note:$('#pNote').value.trim(),lat:parseFloat($('#pLat').value),lon:parseFloat($('#pLon').value),
+ pois:$('#pPois').value.split('\n').map(s=>s.split('|').map(x=>x.trim())).filter(a=>a.length===2&&a[1])};}
+function buildPlan(){
+ const I=info();let lines=$('#script').value.split('\n').map(s=>s.trim()).filter(Boolean);const auto=!lines.length;
+ if(auto)lines=TONES[S.tone];
+ const INTRO=2.6,OUT=3.2;let t=INTRO;const scenes=[];
+ S.media.forEach((m,i)=>{const d=m.type==='video'?clamp(m.dur||4,2.5,6):3.4;scenes.push({m,t0:t,d,cap:lines[i%lines.length],k:i});t+=d;});
+ return{I,scenes,INTRO,OUT0:t,T:t+OUT,auto,lines};
+}
+
+/* ---------- RENDER ---------- */
+const cv=$('#cv'),ctx=cv.getContext('2d');
+function fitFont(text,wt,start,min,maxW){let s=start;ctx.font=FONT(wt,s);while(ctx.measureText(text).width>maxW&&s>min){s--;ctx.font=FONT(wt,s);}return s;}
+let RECTS=[];
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+function drawCover(m,u,k,alpha=1){
+ const el=m.el;const iw=m.w||el.videoWidth||el.naturalWidth,ih=m.h||el.videoHeight||el.naturalHeight;if(!iw)return;
+ const base=Math.max(W/iw,H/ih);const z=m.type==='image'?1.06+0.12*u:1.0+0.04*u;
+ const dir=k%4;const px=[-1,1,0,0][dir]*0.04*W*(u-.5),py=[0,0,-1,1][dir]*0.04*H*(u-.5);
+ const w=iw*base*z,h=ih*base*z;ctx.globalAlpha=alpha;ctx.drawImage(el,(W-w)/2+px,(H-h)/2+py,w,h);ctx.globalAlpha=1;
+}
+function gradTop(){const g=ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(0,0,0,.65)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,260);
+ const g2=ctx.createLinearGradient(0,H-360,0,H);g2.addColorStop(0,'rgba(0,0,0,0)');g2.addColorStop(1,'rgba(0,0,0,.7)');ctx.fillStyle=g2;ctx.fillRect(0,H-360,W,360);}
+function goldGrad(y0,y1){const g=ctx.createLinearGradient(0,y0,0,y1);['#fff7c9','#ffd94f','#d9a31c','#85560a'].forEach((c,i)=>g.addColorStop(i/3,c));return g;}
+function topBar(P,t){ // project chip + progress (y=64/82 like skill)
+ const s=fitFont(P.I.name,'800',20,12,W-2*M-40);const tw=ctx.measureText(P.I.name).width;
+ rr(M,44,tw+40,34,17);ctx.fillStyle='rgba(10,15,28,.72)';ctx.fill();ctx.strokeStyle='rgba(255,217,79,.7)';ctx.lineWidth=1.4;ctx.stroke();
+ ctx.beginPath();ctx.arc(M+17,61,6,0,7);ctx.fillStyle=goldGrad(55,67);ctx.fill();
+ ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(P.I.name,M+30,62);RECTS.push([M,44,M+tw+40,78]);
+ ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(M,90,W-2*M,4);ctx.fillStyle='#ffc247';ctx.fillRect(M,90,(W-2*M)*clamp(t/P.T),4);
+}
+function caption(text,u,idx,total){
+ const a=ease(u/0.12)*(1-ease((u-0.9)/0.1));if(a<=0)return;
+ ctx.save();ctx.globalAlpha=a;const y=CARD_B-112-(1-ease(u/0.15))*24;
+ rr(M,y,W-2*M,112,18);ctx.fillStyle='rgba(10,15,28,.78)';ctx.fill();ctx.strokeStyle='rgba(255,217,79,.55)';ctx.lineWidth=1.5;ctx.stroke();
+ ctx.fillStyle=goldGrad(y+18,y+44);rr(M+18,y+18,74,24,12);ctx.fill();
+ ctx.fillStyle='#2a1a00';ctx.font=FONT('800',12);ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(`CẢNH ${idx+1}/${total}`,M+55,y+30.5);ctx.textAlign='left';
+ // wrap to 2 lines
+ const maxW=W-2*M-36;let s=30;let lines;
+ for(;s>=18;s--){ctx.font=FONT('800',s);lines=wrap(text,maxW);if(lines.length<=2)break;}
+ ctx.fillStyle='#fff';lines.slice(0,2).forEach((l,i)=>ctx.fillText(l,M+18,y+64+i*(s+4)-(lines.length>1?s/2-2:0)));
+ RECTS.push([M,y,W-M,y+112]);ctx.restore();
+}
+function wrap(t,maxW){const w=t.split(' ');const out=[];let cur='';for(const x of w){const n=cur?cur+' '+x:x;if(ctx.measureText(n).width>maxW&&cur){out.push(cur);cur=x;}else cur=n;}if(cur)out.push(cur);return out;}
+function intro(P,t){
+ const first=P.scenes[0];if(first){drawCover(first.m,t/P.INTRO*0.3,1);}
+ ctx.fillStyle=`rgba(5,8,16,${0.55-0.25*ease((t-1.8)/0.8)})`;ctx.fillRect(0,0,W,H);
+ const a=ease(t/0.6);ctx.save();ctx.globalAlpha=a;ctx.textAlign='center';ctx.textBaseline='middle';
+ const words=P.I.name.split(' ');const half=Math.ceil(words.length/2);const L=words.length>2?[words.slice(0,half).join(' '),words.slice(half).join(' ')]:[P.I.name];
+ L.forEach((l,i)=>{const s=fitFont(l,'900',62,26,W-2*M);ctx.fillStyle=goldGrad(400+i*72-30,400+i*72+30);ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=18;ctx.fillText(l,W/2,420+i*72-(L.length-1)*36+(1-a)*20);});
+ ctx.shadowBlur=0;
+ if(P.I.area){fitFont(P.I.area,'700',20,12,W-2*M);ctx.fillStyle='#e6ebf5';ctx.fillText(P.I.area,W/2,540);}
+ const hook=P.lines[0]||'';if(hook){ctx.globalAlpha=ease((t-0.5)/0.6);fitFont(hook,'600',24,14,W-2*M);ctx.fillStyle='#fff';ctx.fillText(hook,W/2,600);}
+ ctx.restore();ctx.textAlign='left';
+}
+function outro(P,t){
+ const last=P.scenes[P.scenes.length-1];if(last)drawCover(last.m,1,last.k);
+ const u=(t-P.OUT0)/(P.T-P.OUT0);ctx.fillStyle=`rgba(5,8,16,${0.35+0.45*ease(u/0.3)})`;ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.globalAlpha=ease(u/0.3);ctx.textAlign='center';ctx.textBaseline='middle';
+ fitFont(P.I.name,'900',48,22,W-2*M);ctx.fillStyle=goldGrad(370,430);ctx.fillText(P.I.name,W/2,400);
+ const tag=P.lines[P.lines.length-1]||'';if(tag){fitFont(tag,'600',22,13,W-2*M);ctx.fillStyle='#fff';ctx.fillText(tag,W/2,458);}
+ const bw=Math.min(W-2*M,ctx.measureText(P.I.cta).width+120);fitFont(P.I.cta,'800',20,12,bw-40);const pul=1+0.03*Math.sin(t*6);
+ ctx.save();ctx.translate(W/2,560);ctx.scale(pul,pul);rr(-bw/2,-30,bw,60,30);ctx.fillStyle=goldGrad(-30,30);ctx.fill();ctx.fillStyle='#2a1a00';ctx.fillText(P.I.cta,0,1);ctx.restore();
+ if(P.I.note){fitFont(P.I.note,'700',22,12,W-2*M);ctx.fillStyle='#fff';ctx.fillText(P.I.note,W/2,640);}
+ ctx.font=FONT('500',12);ctx.fillStyle='rgba(230,235,245,.6)';ctx.fillText('Hình ảnh mang tính minh họa · Video tạo bởi QBK BĐS Video',W/2,CARD_B-10);
+ ctx.restore();ctx.textAlign='left';
+}
+function RENDER(P,t){
+ RECTS=[];ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+ if(t<P.INTRO){intro(P,t);}
+ else if(t>=P.OUT0){outro(P,t);}
+ else{const i=P.scenes.findIndex(s=>t<s.t0+s.d);const sc=P.scenes[i];const u=(t-sc.t0)/sc.d;
+  if(sc.m.type==='video'&&sc.m.el.paused&&!sc._started){sc._started=true;sc.m.el.currentTime=0;sc.m.el.play().catch(()=>{});}
+  if(i>0&&u*sc.d<0.45){const pv=P.scenes[i-1];drawCover(pv.m,1,pv.k);drawCover(sc.m,u,sc.k,ease(u*sc.d/0.45));}
+  else drawCover(sc.m,u,sc.k);
+  gradTop();topBar(P,t);caption(sc.cap,u,i,P.scenes.length);}
+ if(t<P.INTRO&&t>P.INTRO-0.45){ /* fade into scene 1 */ const sc=P.scenes[0];ctx.globalAlpha=ease((t-(P.INTRO-0.45))/0.45);drawCover(sc.m,0,sc.k);ctx.globalAlpha=1;}
+}
+async function play(P,record){
+ S.media.forEach(m=>{if(m.type==='video'){m.el.pause();}});P.scenes.forEach(s=>s._started=false);
+ $('#ph').style.display='none';const phone=$('#phone');const old=phone.querySelector('video');if(old)old.remove();cv.style.display='block';
+ let rec,chunks=[],done;
+ if(record){const stream=cv.captureStream(FPS);const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));
+  rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8e6});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};done=new Promise(r=>rec.onstop=r);rec.start(250);}
+ const N=Math.round(P.T*FPS),t0=performance.now();let late=0,maxMs=0;S.stop=false;
+ for(let i=0;i<N&&!S.stop;i++){const a=performance.now();RENDER(P,i/FPS);maxMs=Math.max(maxMs,performance.now()-a);
+  if(record&&i%15===0)ag('cmp','run',i/N);
+  const wait=t0+(i+1)*1000/FPS-performance.now();if(wait>0)await sleep(wait);else{late++;await sleep(0);}}
+ S.media.forEach(m=>{if(m.type==='video')m.el.pause();});
+ if(record){await sleep(300);rec.stop();await done;return{blob:new Blob(chunks,{type:'video/webm'}),late,maxMs,elapsed:(performance.now()-t0)/1000};}
+ return{late,maxMs};
+}
+
+/* ---------- PIPELINE (Hoàn tất) ---------- */
+$('#btnPreview').onclick=async()=>{if(S.busy)return;S.busy=true;lock(true);$('#btnStop').disabled=false;await play(buildPlan(),false);S.busy=false;lock(false);$('#btnStop').disabled=true;};
+$('#btnStop').onclick=()=>{S.stop=true;};
+function lock(b){$('#btnGo').disabled=b||!S.media.length;$('#btnPreview').disabled=b||!S.media.length;}
+$('#btnGo').onclick=async()=>{
+ if(S.busy||!S.media.length)return;S.busy=true;lock(true);steps(2);
+ AGENTS.forEach(a=>ag(a.id,'idle',0));$('#log').innerHTML='<span class="a">[hệ thống]</span> Bắt đầu job mới.';$('#btnDl').disabled=true;$('#qa').innerHTML='';
+ try{
+  ag('orc','run',.3);const P=buildPlan();
+  log('Điều phối',`Nhận ${S.media.length} file (${S.media.filter(m=>m.type==='image').length} ảnh, ${S.media.filter(m=>m.type==='video').length} video). Giao việc cho 3 agent chạy song song.`);
+  await sleep(500);ag('orc','ok',.5);
+  // parallel: media, writer, map
+  await Promise.all([
+   (async()=>{ag('med','run',0);for(let i=0;i<S.media.length;i++){const m=S.media[i];await sleep(220);
+     const kind=m.type==='video'?'clip':(m.w>m.h*1.2?'ảnh ngang (phối cảnh/drone)':m.h>m.w*1.2?'ảnh dọc':'ảnh vuông');
+     log('Phân tích media',`#${i+1} ${m.name.slice(0,28)} · ${m.w}×${m.h} · ${kind}${m.type==='video'?' · dùng '+P.scenes[i].d.toFixed(1)+'s':''}`);ag('med','run',(i+1)/S.media.length);}
+     ag('med','ok',1);})(),
+   (async()=>{ag('wri','run',.2);await sleep(700);
+     if(P.auto)log('Biên kịch',`Không có kịch bản, tự viết ${P.lines.length} dòng giọng "${document.querySelector('#tone .on').textContent}". Hook: "${P.lines[0]}"`);
+     else log('Biên kịch',`Dùng kịch bản người dùng: ${P.lines.length} dòng, gán cho ${P.scenes.length} cảnh.`);
+     const long=P.lines.filter(l=>l.length>60);if(long.length)log('Biên kịch',`${long.length} dòng dài hơn 60 ký tự, chữ sẽ tự co.`);
+     ag('wri','ok',1);})(),
+   (async()=>{ag('map','run',.3);await sleep(450);
+     if(isFinite(P.I.lat)&&isFinite(P.I.lon)){log('Bản đồ',`Có tọa độ ${P.I.lat}, ${P.I.lon} và ${P.I.pois.length} tiện ích. Cảnh bản đồ vệ tinh cần backend (giai đoạn 2), bản xem trước bỏ qua.`);ag('map','skip',1);}
+     else{log('Bản đồ','Chưa nhập tọa độ, bỏ qua cảnh bản đồ (không tự bịa vị trí).');ag('map','skip',1);}})()
+  ]);
+  ag('orc','run',.8);log('Điều phối',`Gộp kết quả: ${P.scenes.length} cảnh, tổng ${P.T.toFixed(1)}s. Chuyển sang Dựng hình.`);await sleep(300);ag('orc','ok',1);
+  ag('cmp','run',0);log('Dựng hình','Ghi video 576×1024 · 30fps theo thời gian thực...');
+  const R=await play(P,true);ag('cmp','ok',1);
+  log('Dựng hình',`Xong: ${(R.blob.size/1e6).toFixed(1)} MB, ${R.elapsed.toFixed(1)}s, khung trễ ${R.late}.`);
+  ag('qa','run',.5);await sleep(400);
+  const checks=[];
+  // safe-zone check over sample frames
+  let viol=0;for(let t=0;t<P.T;t+=0.5){RENDER(P,t);for(const r of RECTS){if(r[0]<M-0.5||r[2]>W-M+0.5||r[3]>CARD_B+0.5)viol++;}}
+  checks.push([viol===0,`Vùng an toàn (lề ${M}px, đáy 84px): ${viol} vi phạm`]);
+  checks.push([R.late<=3,`Khung trễ: ${R.late}${R.late>3?' (nên dựng lại, giữ tab hiển thị)':''}`]);
+  checks.push([R.blob.size>300e3,`Dung lượng: ${(R.blob.size/1e6).toFixed(1)} MB`]);
+  checks.push([P.T<=90,`Thời lượng: ${P.T.toFixed(1)}s ${P.T>60?'(dài cho Reels/TikTok)':''}`]);
+  checks.push([!!$('#pName').value.trim(),$('#pName').value.trim()?'Đã có tên dự án':'Chưa nhập tên dự án, đang dùng chữ mặc định']);
+  checks.forEach(c=>log('Kiểm duyệt',(c[0]?'✔ ':'⚠ ')+c[1]));
+  $('#qa').innerHTML=checks.map(c=>`<li class="${c[0]?'pass':'fail'}">${c[0]?'✔':'⚠'} ${c[1]}</li>`).join('');
+  ag('qa','ok',1);
+  if(S.url)URL.revokeObjectURL(S.url);S.blob=R.blob;S.url=URL.createObjectURL(R.blob);
+  const v=document.createElement('video');v.src=S.url;v.controls=true;v.loop=true;v.playsInline=true;cv.style.display='none';$('#phone').appendChild(v);v.play().catch(()=>{});
+  $('#meta').innerHTML=`<span>Trạng thái</span><b style="color:var(--ok)">Sẵn sàng xuất</b><span>Kích thước</span><b>576 × 1024 · 30fps</b><span>Thời lượng</span><b>${P.T.toFixed(1)} giây</b><span>Dung lượng</span><b>${(R.blob.size/1e6).toFixed(1)} MB · WebM</b>`;
+  $('#btnDl').disabled=false;steps(3);log('Điều phối','Hoàn tất. Video đã sẵn sàng ở mục Xuất video.');
+ }catch(e){log('Lỗi',String(e&&e.message||e));AGENTS.forEach(a=>{const d=$('#ag-'+a.id);if(d.classList.contains('run'))ag(a.id,'err');});}
+ S.busy=false;lock(false);
+};
+$('#btnDl').onclick=()=>{if(!S.blob)return;const a=document.createElement('a');a.href=S.url;
+ a.download=(($('#pName').value.trim()||'video-bds').replace(/[^\p{L}\p{N}]+/gu,'-').toLowerCase())+'.webm';a.click();};
+
+/* initial frame */
+ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+window.QBK={S,buildPlan,RENDER,addFiles};
+})();
+</script>
+</body>
+</html>
