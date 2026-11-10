@@ -133,7 +133,8 @@ textarea{min-height:130px}#pPois{min-height:70px}
 .empty{border:1.5px dashed var(--line);border-radius:14px;padding:22px 16px;color:var(--mut);text-align:center;font-size:14px}
 details.card>summary{font-weight:700;font-size:14px;color:var(--txt);min-height:28px;display:flex;align-items:center;gap:8px;margin:0}
 .qa:empty{display:none}
-.loc{border-color:var(--gold)}.loc input{border-color:#5a4a1e}
+.loc{border-color:var(--gold)}.loc label.lb1{margin:2px 0 6px}.lb1{font-size:13px;font-weight:700;color:var(--txt);margin-top:0}.loc .lb1+input{margin-bottom:6px}.locmode{margin-bottom:8px}
+.drop{padding:18px 12px}.dico{width:42px;height:42px;font-size:24px}
 .sub2 summary{margin-top:10px;font-size:13px}
 #locInfo b{color:var(--txt)}#locInfo.ok{color:var(--ok)}
 @media(min-width:900px){.act{bottom:calc(62px + env(safe-area-inset-bottom,0px))}}
@@ -149,30 +150,41 @@ details.card>summary{font-weight:700;font-size:14px;color:var(--txt);min-height:
 <main>
   <!-- BƯỚC 1 -->
   <section class="scr on" id="scr-1">
-    <div class="ttl"><h1>Vị trí, ảnh &amp; video</h1><p class="sub">Có vị trí là ra cảnh bản đồ hạ tầng. Thêm ảnh flycam, phối cảnh, nội thất nếu có.</p></div>
+    <div class="ttl"><h1>Dự án ở đâu?</h1><p class="sub">Chỉ cần tên và vị trí là ra video bản đồ hạ tầng. Ảnh không bắt buộc.</p></div>
     <div class="card loc">
-      <h2>📍 Vị trí dự án <span class="opt">để có cảnh bản đồ</span></h2>
-      <input id="pLoc" autocomplete="off" placeholder="Dán link Google Maps, tọa độ hoặc địa chỉ">
-      <p class="note" id="locInfo">Trên Google Maps: chọn vị trí dự án → <b>Chia sẻ</b> → <b>Sao chép đường liên kết</b> rồi dán vào đây. Hoặc gõ <i>10.8705, 106.738</i>, hoặc tên/địa chỉ dự án.</p>
+      <label for="pName" class="lb1">Tên dự án</label><input id="pName" placeholder="VD: VINHOMES GRAND PARK">
+      <label class="lb1">Vị trí</label>
+      <div class="seg locmode" id="locMode"><span class="chip on" data-v="addr">Địa chỉ</span><span class="chip" data-v="url">Link Maps</span><span class="chip" data-v="xy">Tọa độ</span></div>
+      <div id="lmAddr"><input id="locAddr" autocomplete="off" placeholder="VD: Long Bình, Thủ Đức, TP.HCM">
+        <p class="note">Để trống thì app tự tìm theo tên dự án. Gõ thêm phường, quận để tìm chính xác hơn.</p></div>
+      <div id="lmUrl" hidden><input id="locUrl" type="url" autocomplete="off" placeholder="Dán link Google Maps">
+        <p class="note">Google Maps → chọn vị trí → <b>Chia sẻ</b> → <b>Sao chép đường liên kết</b>.</p></div>
+      <div id="lmXy" hidden><div class="row">
+          <div><label for="locLat">Vĩ độ</label><input id="locLat" inputmode="decimal" placeholder="10.839579"></div>
+          <div><label for="locLon">Kinh độ</label><input id="locLon" inputmode="decimal" placeholder="106.842116"></div></div>
+        <p class="note">Nhấn giữ điểm trên Google Maps, số hiện ra dạng <i>10.839579, 106.842116</i>. Dán cả dãy vào ô Vĩ độ cũng được.</p></div>
+      <p class="note" id="locInfo"></p>
       <details class="sub2"><summary>Tiện ích muốn nhắc thêm <span class="opt">không bắt buộc</span></summary>
         <textarea id="pPois" placeholder="Mỗi dòng: loại | tên&#10;KẾT NỐI | Sân bay Tân Sơn Nhất&#10;MUA SẮM | Vincom Thủ Đức"></textarea>
         <p class="note">Không nhập thì AI tự tìm bệnh viện, ga, TTTM, bến xe, sân bay, cầu quanh dự án.</p></details>
     </div>
-    <div class="drop" id="drop"><span class="dico" aria-hidden="true">＋</span><b>Chọn ảnh, video</b><span class="sub">hoặc kéo thả vào đây · JPG, PNG, MP4, MOV</span></div>
-    <input type="file" id="file" accept="image/*,video/*" multiple hidden>
-    <div class="thumbs" id="thumbs"></div>
-    <p class="tip" id="thumbTip" hidden>Bấm <b>✎</b> trên ảnh để cắm ghim, kẻ đường neon, vẽ lô đất. Dùng ◀ ▶ để đổi thứ tự.</p>
-    <label class="chk"><input type="checkbox" id="aiOrder" checked> Để AI tự sắp xếp thứ tự cảnh</label>
-    <div class="card">
-      <h2>Thông tin dự án</h2>
-      <label for="pName">Tên dự án</label><input id="pName" placeholder="VD: HAPPY ONE ELITE">
-      <label for="pArea">Khu vực</label><input id="pArea" placeholder="VD: TAM BÌNH · THỦ ĐỨC">
+    <details class="card"><summary>Chữ cuối video <span class="opt">không bắt buộc</span></summary>
+      <label for="pArea">Khu vực</label><input id="pArea" placeholder="VD: LONG BÌNH · THỦ ĐỨC">
       <div class="row">
         <div><label for="pCta">Nút kêu gọi</label><input id="pCta" placeholder="LIÊN HỆ NGAY"></div>
         <div><label for="pNote">Hotline</label><input id="pNote" inputmode="tel" placeholder="0909 xxx xxx"></div>
       </div>
+    </details>
+    <div class="card">
+      <h2>Ảnh, video <span class="opt">không bắt buộc</span></h2>
+      <p class="note" style="margin:0 0 10px">Thêm ảnh flycam, phối cảnh, nội thất để ghép sau phần bản đồ.</p>
+      <div class="drop" id="drop"><span class="dico" aria-hidden="true">＋</span><b>Thêm ảnh, video</b><span class="sub">JPG, PNG, MP4, MOV</span></div>
+      <input type="file" id="file" accept="image/*,video/*" multiple hidden>
+      <div class="thumbs" id="thumbs" style="margin-top:10px"></div>
+      <p class="tip" id="thumbTip" hidden>Bấm <b>✎</b> trên ảnh để cắm ghim, kẻ đường neon, vẽ lô đất. ◀ ▶ đổi thứ tự.</p>
+      <label class="chk" style="margin-top:8px"><input type="checkbox" id="aiOrder" checked> Để AI tự sắp xếp thứ tự ảnh</label>
     </div>
-    <div class="act"><p class="ahint" id="goHint">Nhập vị trí dự án hoặc chọn ít nhất 1 ảnh/video.</p><button class="btn pri" id="btnNext1" disabled>Tiếp: Kịch bản →</button></div>
+    <div class="act"><p class="ahint" id="goHint">Nhập tên dự án hoặc vị trí để bắt đầu.</p><button class="btn pri" id="btnNext1" disabled>Tiếp: Kịch bản →</button></div>
   </section>
 
   <!-- BƯỚC 2 -->
@@ -232,7 +244,7 @@ details.card>summary{font-weight:700;font-size:14px;color:var(--txt);min-height:
   </section>
 </main>
 <nav class="tabs" aria-label="Các bước">
-  <button class="tab on" data-s="1"><span class="tn">1</span>Ảnh</button>
+  <button class="tab on" data-s="1"><span class="tn">1</span>Dự án</button>
   <button class="tab" data-s="2"><span class="tn">2</span>Kịch bản</button>
   <button class="tab" data-s="3"><span class="tn">3</span>Dựng</button>
   <button class="tab" data-s="4"><span class="tn">4</span>Xuất</button>
@@ -349,19 +361,28 @@ function renderThumbs(){
    renderThumbs();});
   box.appendChild(d);});
  const has=S.media.length>0||coordsOk();$('#btnGo').disabled=!has||S.busy;$('#btnNext1').disabled=!has;$('#btnPreview').disabled=!S.media.length||S.busy;$('#thumbTip').hidden=!S.media.length;
- $('#goHint').textContent=has?`${coordsOk()?'📍 Có cảnh bản đồ':'Chưa có vị trí'} · ${S.media.length} ảnh/video${coordsOk()&&!S.map?' · bản đồ khoảng 30 giây':''}`:'Nhập vị trí dự án hoặc chọn ít nhất 1 ảnh/video.';
+ $('#goHint').textContent=has?`${coordsOk()?'📍 Có cảnh bản đồ (khoảng 30 giây)':'Chưa có vị trí'}${S.media.length?' · '+S.media.length+' ảnh/video':''}`:'Nhập tên dự án hoặc vị trí để bắt đầu.';
  steps(S.blob?4:has?1:0);
 }
 
 // Vị trí: tọa độ, link Google Maps (dài hoặc rút gọn), hoặc địa chỉ/tên — máy chủ tự xác định phần còn lại
 function coordsFromText(t){try{t=decodeURIComponent(String(t||''));}catch(e){t=String(t||'');}
  for(const re of [/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/[?&](?:q|query|ll|center|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/^\s*(-?\d{1,2}\.\d+)\s*[,; ]\s*(-?\d{1,3}\.\d+)\s*$/]){const m=re.exec(t);if(m&&Math.abs(+m[1])<=85&&Math.abs(+m[2])<=180)return{lat:+m[1],lon:+m[2]};}return null;}
-function parseLoc(){const t=$('#pLoc').value.trim();if(!t)return null;const c=coordsFromText(t);if(c)return{...c,kind:'coords'};
- const u=/https?:\/\/\S+/.exec(t);if(u)return{url:u[0],kind:'url'};return{query:t,kind:'query'};}
+let LOCMODE='addr';
+function parseLoc(){
+ if(LOCMODE==='xy'){const a=$('#locLat').value.trim(),b=$('#locLon').value.trim();const c=coordsFromText(b?a+', '+b:a);return c?{...c,kind:'coords'}:null;}
+ if(LOCMODE==='url'){const t=$('#locUrl').value.trim();if(!t)return null;const c=coordsFromText(t);if(c)return{...c,kind:'coords'};const u=/https?:\/\/\S+/.exec(t);return u?{url:u[0],kind:'url'}:{query:t,kind:'query'};}
+ const t=$('#locAddr').value.trim();const c=coordsFromText(t);if(c)return{...c,kind:'coords'};const u=/https?:\/\/\S+/.exec(t);if(u)return{url:u[0],kind:'url'};
+ const name=$('#pName').value.trim();const q=[name,t].filter(Boolean).join(', ');return q?{query:q,kind:'query',auto:!t}:null;}
 function coordsOk(){return !!parseLoc();}
-function locNote(){const L=parseLoc(),el=$('#locInfo');if(!L){el.className='note';el.innerHTML='Trên Google Maps: chọn vị trí dự án → <b>Chia sẻ</b> → <b>Sao chép đường liên kết</b> rồi dán vào đây. Hoặc gõ <i>10.8705, 106.738</i>, hoặc tên/địa chỉ dự án.';return;}
- el.className='note ok';el.textContent=L.kind==='coords'?`✔ Tọa độ ${L.lat.toFixed(5)}, ${L.lon.toFixed(5)}`:L.kind==='url'?'✔ Link Google Maps. Máy chủ sẽ đọc vị trí từ link khi dựng.':`✔ Máy chủ sẽ tìm "${L.query}" trên bản đồ. Kết quả tìm theo tên có thể lệch, dán link Google Maps sẽ chính xác hơn.`;}
-$('#pLoc').addEventListener('input',()=>{locNote();renderThumbs();});
+function locNote(){const L=parseLoc(),el=$('#locInfo');
+ if(!L){el.className='note';el.textContent=LOCMODE==='xy'?'Nhập đủ vĩ độ và kinh độ.':LOCMODE==='url'?'':'Nhập tên dự án hoặc địa chỉ để app tự tìm.';return;}
+ el.className='note ok';el.textContent=L.kind==='coords'?`✔ Dùng tọa độ ${L.lat.toFixed(6)}, ${L.lon.toFixed(6)}`:L.kind==='url'?'✔ Máy chủ sẽ đọc vị trí từ link khi dựng.':`✔ App sẽ tự tìm "${L.query}" trên bản đồ${L.auto?' (theo tên dự án)':''}. Nhật ký sẽ ghi vị trí tìm được để bạn kiểm tra.`;}
+seg('#locMode',v=>{LOCMODE=v;$('#lmAddr').hidden=v!=='addr';$('#lmUrl').hidden=v!=='url';$('#lmXy').hidden=v!=='xy';locNote();renderThumbs();});
+['#locAddr','#locUrl','#locLat','#locLon','#pName'].forEach(id=>$(id).addEventListener('input',()=>{locNote();renderThumbs();}));
+// dán "10.83, 106.84" vào ô Vĩ độ thì tự tách
+$('#locLat').addEventListener('change',()=>{const c=coordsFromText($('#locLat').value);if(c&&!$('#locLon').value.trim()){$('#locLat').value=c.lat;$('#locLon').value=c.lon;locNote();renderThumbs();}});
+setTimeout(locNote,0);
 /* ---------- SCRIPT ---------- */
 seg('#tone',v=>S.tone=v);seg('#capStyle',v=>S.cap=v);
 const TONES={
@@ -380,7 +401,7 @@ function info(){return{name:$('#pName').value.trim()||'DỰ ÁN CỦA BẠN',are
 // overlay timeline: items appear one after another like the CapCut tutorials
 function ovTimes(items){let t=0.35;return items.map(it=>{const d={road:1.3,plot:1.1,card:1.1,ring:1.0}[it.t]||0.6;const st=t;t+=it.t==='road'?0.9:it.t==='plot'||it.t==='card'?0.75:0.5;return{st,d};});}
 function sceneDur(m){const base=m.type==='video'?clamp(m.dur||4,2.5,6):3.4;const n=m.ov.items.length;if(!n)return base;const tt=ovTimes(m.ov.items);const last=tt[n-1];return Math.max(base,last.st+last.d+1.4);}
-function aiKey(){return JSON.stringify([$('#pLoc').value,$('#script').value,S.tone,S.media.map(m=>m.id),$('#pName').value,$('#pArea').value,$('#pCta').value]);}
+function aiKey(){return JSON.stringify([JSON.stringify(parseLoc()),$('#script').value,S.tone,S.media.map(m=>m.id),$('#pName').value,$('#pArea').value,$('#pCta').value]);}
 function buildPlan(){
  const I=info();let lines=$('#script').value.split('\n').map(s=>s.trim()).filter(Boolean);const auto=!lines.length;
  if(auto)lines=TONES[S.tone];
