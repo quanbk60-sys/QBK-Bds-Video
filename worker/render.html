@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><title>map render</title></head>
+<body style="margin:0;background:#000">
+<canvas id="cv" width="576" height="1024"></canvas>
+<script src="../app/map-engine.js"></script>
+<script>
+// Chạy một job bản đồ: tìm hạ tầng → tuyến → tải ảnh vệ tinh → quay đoạn bản đồ (mở đầu nghiêng + các cảnh chủ đề + toàn vùng).
+window.runJob = async (job) => {
+  const logs = []; const L = (m) => { logs.push(m); console.log("[map] " + m); };
+  const TI = 2.6, FPS = 30;
+  const cfg = { lat: +job.lat, lon: +job.lon, name: job.name || "DỰ ÁN", pois: (job.pois || []).map((p) => Array.isArray(p) ? p : [p.cat || "", p.name || ""]).filter((p) => p[1]) };
+  const found = await MapEngine.discover(cfg, L);
+  if (!found.length) throw new Error("Không tìm thấy hạ tầng nào quanh tọa độ này.");
+  const pois = await MapEngine.route(cfg, found, L);
+  if (!pois.length) throw new Error("Không lấy được tuyến đường nào.");
+  const eng = MapEngine.build(cfg, pois);
+  L(`${eng.themes.length} cảnh: ${eng.themes.map(t => t.title).join(" → ")} (${eng.T.toFixed(1)}s)`);
+  const pf = await eng.prefetch(TI, (d, n) => { if (d % 100 === 0) L(`ảnh vệ tinh ${d}/${n}`); });
+  if (pf.failed > pf.total * 0.05) throw new Error(`Quá nhiều ô ảnh vệ tinh lỗi (${pf.failed}/${pf.total}).`);
+  L(`Đã tải ${pf.total} ô ảnh vệ tinh, ${JSON.stringify(eng.calibrate())}`);
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  const total = TI + eng.T;
+  const draw = (t) => (t < TI ? eng.renderIntro(ctx, t, TI, []) : eng.render(ctx, t - TI, []));
+  const stream = cv.captureStream(FPS);
+  const mime = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find((m) => MediaRecorder.isTypeSupported(m));
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 10e6 });
+  const chunks = []; rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  const done = new Promise((r) => (rec.onstop = r));
+  rec.start(250);
+  const N = Math.round(total * FPS), t0 = performance.now(); let late = 0;
+  for (let i = 0; i < N; i++) {
+    draw(i / FPS);
+    const wait = t0 + (i + 1) * 1000 / FPS - performance.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait)); else { late++; await new Promise((r) => setTimeout(r, 0)); }
+  }
+  await new Promise((r) => setTimeout(r, 300)); rec.stop(); await done;
+  const blob = new Blob(chunks, { type: "video/webm" });
+  const buf = new Uint8Array(await blob.arrayBuffer()); let bin = "";
+  for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  const themes = eng.themes.map((t) => ({ title: t.title, items: t.items.map((p) => ({ name: p.name, km: +p.km.toFixed(1), min: Math.round(p.min) })) }));
+  return { webm: btoa(bin), themes, TI, T: eng.T, N: eng.N, SC: 4.6, late, logs };
+};
+</script></body></html>

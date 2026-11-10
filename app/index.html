@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>QBK BĐS Video</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
 <style>
 :root{--bg:#0b0f1a;--panel:#121829;--panel2:#182036;--line:#26304a;--txt:#e6ebf5;--mut:#8d98b3;
 --gold:#ffc247;--blue:#5fa8ff;--ruby:#ff5d73;--ok:#3ddc97;--warn:#ffb020;--cyan:#3dffe0;--r:14px;color-scheme:dark}
@@ -88,95 +89,153 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
 .hint{font-size:12px;color:var(--cyan);background:#0b2421;border:1px solid #1d4a44;border-radius:10px;padding:8px 10px;margin:10px 0}
 .items{font-size:12px;color:var(--mut);margin:8px 0;padding-left:18px;max-height:140px;overflow:auto}
 .seg{display:flex;gap:6px}.seg .chip{flex:1;text-align:center}
+
+/* Layout: một cột kiểu app điện thoại (giống QBK Studio): 4 màn hình theo bước, nút chính cố định phía dưới, thanh bước ở đáy */
+body{font-family:"Be Vietnam Pro","Segoe UI","Helvetica Neue",Arial,sans-serif;font-size:15px}
+header{justify-content:space-between}
+main{display:block;max-width:600px;margin:0 auto;padding-block:16px calc(170px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.scr{display:none;flex-direction:column;gap:14px}.scr.on{display:flex}
+.scr .card{margin:0}
+.ttl h1{margin:0;font-size:24px;line-height:1.2;text-wrap:balance}.ttl .sub{margin:4px 0 0}
+.card h2{font-size:14px;margin-bottom:10px;letter-spacing:.02em}
+input,textarea,select{font-size:16px;min-height:44px}
+input[type=range]{padding:0;min-height:32px;accent-color:var(--gold)}
+input[type=checkbox]{min-height:0;width:20px;height:20px;accent-color:var(--gold)}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 16px}
+.dico{width:52px;height:52px;border-radius:50%;background:var(--gold);color:#2a1a00;display:grid;place-items:center;font-size:30px;font-weight:700;line-height:1}
+.drop b{font-size:17px}
+.thumbs{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:0}
+.thumbs:empty{display:none}
+.th .ctl{padding:16px 3px 3px;gap:2px}
+.th .ctl button{flex:1;min-height:34px;font-size:14px;padding:0}
+.th .ctl button[data-a=e]{background:var(--gold);color:#2a1a00;font-weight:700}
+.tip{font-size:12.5px;color:var(--mut);margin:0}
+.chk{margin:0;font-size:13.5px;color:var(--txt)}
+.chip{min-height:38px;display:inline-flex;align-items:center;font-size:13.5px;padding:0 14px}
+.seg .chip{justify-content:center}
+.act{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:15;background:linear-gradient(transparent,var(--bg) 28%);padding:22px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;align-items:center;gap:6px}
+.act>*{width:100%;max-width:568px}
+.act .btn.pri{min-height:54px;font-size:16px;border-radius:14px}
+.ahint{margin:0;font-size:12.5px;color:var(--mut);text-align:center}
+textarea{min-height:130px}#pPois{min-height:70px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:16;background:#0d1322;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+.tab{background:none;border:0;color:var(--mut);font:600 12px "Be Vietnam Pro",sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:50px;justify-content:center;cursor:pointer;border-radius:10px}
+.tab .tn{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:12px}
+.tab.on{color:var(--gold)}.tab.on .tn{background:var(--gold);color:#2a1a00;border-color:var(--gold)}
+.tab.done .tn{background:#1f5a45;border-color:#1f5a45;color:#d9fff0}
+.tab:focus-visible,.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.pbar{height:8px;border-radius:8px;background:var(--panel2);overflow:hidden}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#d9a31c,#ffd94f);transition:width .3s}
+.phone{width:min(100%,260px)}
+.pv-ctl{margin-top:0}
+.ag{padding:7px 9px;gap:9px;grid-template-columns:30px 1fr auto}.ag .ic{width:30px;height:30px;font-size:15px}.ag .ds{display:none}
+.logd summary{margin-top:10px}.log{height:200px}
+#expVid{width:min(100%,300px);aspect-ratio:9/16;align-self:center;border-radius:18px;border:6px solid #1d2438;background:#000}
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:22px 16px;color:var(--mut);text-align:center;font-size:14px}
+details.card>summary{font-weight:700;font-size:14px;color:var(--txt);min-height:28px;display:flex;align-items:center;gap:8px;margin:0}
+.qa:empty{display:none}
+@media(min-width:900px){.act{bottom:calc(62px + env(safe-area-inset-bottom,0px))}}
+@media(max-width:760px){.edbox{flex-direction:column;align-items:center;overflow:auto;max-height:100%}.edcv{height:56vh;width:auto;max-width:100%}.edside{max-height:none;width:100%;min-width:0}#ed{align-items:flex-start;padding:12px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">QBK <b>BĐS</b> Video</div>
-  <div id="srv">Đang kiểm tra máy chủ…</div>
-  <div class="steps" id="steps">
-    <span class="step on">1 · Tải lên</span><span class="step">2 · Kịch bản</span><span class="step">3 · Agent dựng</span><span class="step">4 · Xuất video</span>
-  </div>
+  <div id="srv">Đang kiểm tra…</div>
 </header>
 <main>
-  <section>
-    <div class="card">
-      <h2><span class="n">1</span>Tải ảnh, video lên</h2>
-      <p class="sub">Ảnh vệ tinh, ảnh drone, phối cảnh, tiện ích hoặc clip quay thực tế. Bấm <b>✎ Ghim</b> trên từng ảnh để cắm ghim, kẻ đường neon, vẽ lô đất, gắn thẻ ảnh tiện ích.</p>
-      <div class="drop" id="drop"><big>⬆</big><b>Kéo thả hoặc bấm để chọn file</b><div class="sub" style="margin:4px 0 0">JPG, PNG, WEBP, MP4, MOV, WEBM</div></div>
-      <input type="file" id="file" accept="image/*,video/*" multiple hidden>
-      <div class="thumbs" id="thumbs"></div>
-      <label class="chk"><input type="checkbox" id="aiOrder" checked> Cho agent Phân tích media sắp xếp lại thứ tự cảnh</label>
-    </div>
+  <!-- BƯỚC 1 -->
+  <section class="scr on" id="scr-1">
+    <div class="ttl"><h1>Ảnh &amp; video dự án</h1><p class="sub">Chọn ảnh vệ tinh, flycam, phối cảnh, nội thất hoặc clip quay thực tế.</p></div>
+    <div class="drop" id="drop"><span class="dico" aria-hidden="true">＋</span><b>Chọn ảnh, video</b><span class="sub">hoặc kéo thả vào đây · JPG, PNG, MP4, MOV</span></div>
+    <input type="file" id="file" accept="image/*,video/*" multiple hidden>
+    <div class="thumbs" id="thumbs"></div>
+    <p class="tip" id="thumbTip" hidden>Bấm <b>✎</b> trên ảnh để cắm ghim, kẻ đường neon, vẽ lô đất. Dùng ◀ ▶ để đổi thứ tự.</p>
+    <label class="chk"><input type="checkbox" id="aiOrder" checked> Để AI tự sắp xếp thứ tự cảnh</label>
     <div class="card">
       <h2>Thông tin dự án</h2>
+      <label for="pName">Tên dự án</label><input id="pName" placeholder="VD: HAPPY ONE ELITE">
+      <label for="pArea">Khu vực</label><input id="pArea" placeholder="VD: TAM BÌNH · THỦ ĐỨC">
       <div class="row">
-        <div><label>Tên dự án</label><input id="pName" placeholder="VD: HAPPY ONE ELITE"></div>
-        <div><label>Khu vực</label><input id="pArea" placeholder="VD: TAM BÌNH · THỦ ĐỨC"></div>
+        <div><label for="pCta">Nút kêu gọi</label><input id="pCta" placeholder="LIÊN HỆ NGAY"></div>
+        <div><label for="pNote">Hotline</label><input id="pNote" inputmode="tel" placeholder="0909 xxx xxx"></div>
       </div>
-      <div class="row">
-        <div><label>Câu kêu gọi (CTA)</label><input id="pCta" placeholder="LIÊN HỆ NHẬN THÔNG TIN"></div>
-        <div><label>Hotline / ghi chú cuối</label><input id="pNote" placeholder="0909 xxx xxx"></div>
-      </div>
-      <details>
-        <summary>Bản đồ hạ tầng tự động (không bắt buộc) — agent Bản đồ</summary>
-        <div class="row">
-          <div><label>Vĩ độ (lat)</label><input id="pLat" placeholder="21.0168"></div>
-          <div><label>Kinh độ (lon)</label><input id="pLon" placeholder="105.7810"></div>
-        </div>
-        <label>Tiện ích muốn nhắc (không bắt buộc, mỗi dòng: loại | tên)</label>
-        <textarea id="pPois" style="min-height:70px" placeholder="KẾT NỐI | Vành đai 3&#10;METRO | Ga Phùng Khoang&#10;MUA SẮM | AEON Mall Hà Đông"></textarea>
-        <p class="note" id="mapNote">Chỉ cần tọa độ thật (chuột phải trên Google Maps để copy). Khi bấm Hoàn tất, agent tự tìm ga metro, TTTM, bến xe, sân bay, cầu quanh dự án, vẽ tuyến đường trên nền vệ tinh và chia cảnh theo chủ đề. Có tọa độ thì không cần ảnh vẫn tạo được video. Cần mạng tới Esri, OSRM, Photon.</p>
-      </details>
     </div>
+    <details class="card">
+      <summary>Bản đồ hạ tầng tự động <span class="opt">không bắt buộc</span></summary>
+      <div class="row">
+        <div><label for="pLat">Vĩ độ (lat)</label><input id="pLat" inputmode="decimal" placeholder="21.0168"></div>
+        <div><label for="pLon">Kinh độ (lon)</label><input id="pLon" inputmode="decimal" placeholder="105.7810"></div>
+      </div>
+      <label for="pPois">Tiện ích muốn nhắc (mỗi dòng: loại | tên)</label>
+      <textarea id="pPois" style="min-height:70px" placeholder="KẾT NỐI | Vành đai 3&#10;METRO | Ga Phùng Khoang"></textarea>
+      <p class="note" id="mapNote">Chỉ cần tọa độ thật (nhấn giữ trên Google Maps để copy). Agent tự tìm ga, TTTM, bến xe, sân bay, cầu quanh dự án và dựng cảnh vệ tinh. Có tọa độ thì không cần ảnh.</p>
+    </details>
+    <div class="act"><p class="ahint" id="goHint">Chọn ít nhất 1 ảnh hoặc video.</p><button class="btn pri" id="btnNext1" disabled>Tiếp: Kịch bản →</button></div>
   </section>
 
-  <section>
+  <!-- BƯỚC 2 -->
+  <section class="scr" id="scr-2">
+    <div class="ttl"><h1>Kịch bản</h1><p class="sub">Không bắt buộc. Để trống thì AI tự viết theo nội dung ảnh.</p></div>
     <div class="card">
-      <h2><span class="n">2</span>Kịch bản <span class="opt">không bắt buộc</span></h2>
-      <p class="sub">Mỗi dòng là chữ của một cảnh. Đặt chữ trong <b>*dấu sao*</b> để tô vàng. Bỏ trống thì agent Biên kịch tự viết.</p>
+      <h2>Giọng văn</h2>
       <div class="chips" id="tone">
         <span class="chip on" data-v="sang">Sang trọng</span><span class="chip" data-v="dt">Đầu tư</span><span class="chip" data-v="gd">Gia đình</span><span class="chip" data-v="tt">TikTok bắt trend</span>
       </div>
-      <textarea id="script" placeholder="Ngay cửa nhà là *trung tâm*&#10;5 phút tới *Vincom* Thủ Đức&#10;Hồ bơi tràn bờ tầng thượng&#10;Sổ hồng riêng từng căn"></textarea>
-      <label>Kiểu chữ trên cảnh</label>
-      <div class="seg" id="capStyle"><span class="chip on" data-v="top">Tiêu đề trên (kiểu TikTok)</span><span class="chip" data-v="card">Thẻ dưới</span></div>
-      <label>Nhạc nền <span class="opt">không bắt buộc</span></label><input type="file" id="music" accept="audio/*">
-      <label>Âm lượng nhạc: <span id="volv">80</span>%</label><input type="range" id="vol" min="0" max="150" value="80" style="padding:0">
-      <div class="chips"><span class="chip" id="btnSample">Dùng kịch bản mẫu</span><span class="chip" id="btnClear">Xóa</span></div>
+      <label for="script">Chữ trên từng cảnh <span class="opt">mỗi dòng 1 cảnh</span></label>
+      <textarea id="script" placeholder="Ngay cửa nhà là *trung tâm*&#10;5 phút tới *Vincom* Thủ Đức&#10;Hồ bơi tràn bờ tầng thượng"></textarea>
+      <p class="note">Đặt chữ trong <b>*dấu sao*</b> để tô vàng.</p>
+      <div class="chips"><span class="chip" id="btnSample">Điền kịch bản mẫu</span><span class="chip" id="btnClear">Xóa</span></div>
     </div>
-    <button class="btn pri" id="btnGo" disabled>✔ Hoàn tất &amp; tạo video</button>
-    <p class="note" id="goHint" style="text-align:center">Tải lên ít nhất 1 ảnh hoặc video để bắt đầu.</p>
-    <div class="card" style="margin-top:14px">
-      <h2><span class="n">3</span>Đội agent làm việc</h2>
-      <p class="sub">7 agent: Điều phối giao việc, bốn agent giữa chạy song song, Dựng hình xuất video, Kiểm duyệt rà lỗi.</p>
-      <div class="agents" id="agents"></div>
-      <div class="log" id="log"><span class="a">[hệ thống]</span> Sẵn sàng.</div>
+    <div class="card">
+      <h2>Kiểu chữ</h2>
+      <div class="seg" id="capStyle"><span class="chip on" data-v="top">Tiêu đề trên</span><span class="chip" data-v="card">Thẻ dưới</span></div>
     </div>
+    <div class="card">
+      <h2>Nhạc nền <span class="opt">không bắt buộc</span></h2>
+      <input type="file" id="music" accept="audio/*" aria-label="Chọn file nhạc nền">
+      <label for="vol">Âm lượng: <span id="volv">80</span>%</label><input type="range" id="vol" min="0" max="150" value="80">
+    </div>
+    <div class="act"><p class="ahint">AI phân tích ảnh, viết chữ, dựng và kiểm tra video.</p><button class="btn pri" id="btnGo" disabled>✔ Hoàn tất &amp; tạo video</button></div>
   </section>
 
-  <section class="col3">
-    <div class="card">
-      <h2>Xem trước 9:16</h2>
-      <div class="phone" id="phone"><canvas id="cv" width="576" height="1024"></canvas><div class="ph" id="ph">Video sẽ hiện ở đây sau khi bấm Hoàn tất.<br><br>Bấm "Xem nhanh" để xem thử bố cục từ media đã tải.</div></div>
-      <div class="pv-ctl"><button class="btn sec" id="btnPreview" disabled>▶ Xem nhanh</button><button class="btn sec" id="btnStop" disabled>■ Dừng</button></div>
-    </div>
-    <div class="card">
-      <h2><span class="n">4</span>Xuất video</h2>
-      <div class="exp">
-        <div class="row">
-          <div><label>Định dạng</label><select id="fmt"><option value="mp4" disabled>MP4 H.264 (cần máy chủ)</option><option value="webm" selected>WebM</option></select></div>
-          <div><label>Độ phân giải</label><select id="res"><option value="1080" disabled>1080 × 1920</option><option value="720" disabled>720 × 1280</option><option value="576" selected>576 × 1024</option></select></div>
-        </div>
+  <!-- BƯỚC 3 -->
+  <section class="scr" id="scr-3">
+    <div class="ttl"><h1 id="t3">Dựng video</h1><p class="sub" id="stat">Bấm "Hoàn tất &amp; tạo video" ở bước Kịch bản để bắt đầu.</p></div>
+    <div class="pbar"><i id="pfill"></i></div>
+    <div class="phone" id="phone"><canvas id="cv" width="576" height="1024"></canvas><div class="ph" id="ph">Video sẽ hiện ở đây.<br><br>Bấm "Xem nhanh" để xem thử bố cục.</div></div>
+    <div class="pv-ctl"><button class="btn sec sm" id="btnPreview" disabled>▶ Xem nhanh</button><button class="btn sec sm" id="btnStop" disabled>■ Dừng</button></div>
+    <div class="card"><h2>Đội 7 agent</h2><div class="agents" id="agents"></div>
+      <details class="logd"><summary>Nhật ký chi tiết</summary><div class="log" id="log"><span class="a">[hệ thống]</span> Sẵn sàng.</div></details></div>
+    <div class="act"><button class="btn pri" id="btnNext3" disabled>Tiếp: Xuất video →</button></div>
+  </section>
 
-        <div class="meta" id="meta"><span>Trạng thái</span><b>Chưa có video</b></div>
-        <ul class="qa" id="qa"></ul>
-        <button class="btn pri" id="btnDl" disabled>⬇ Tải video</button>
-        <p class="note" id="expNote">Video ghi theo thời gian thực, giữ tab đang mở khi dựng. Chạy app bằng máy chủ (<code>npm start</code>) để xuất MP4 1080×1920 có nhạc nền.</p>
-      </div>
+  <!-- BƯỚC 4 -->
+  <section class="scr" id="scr-4">
+    <div class="ttl"><h1>Xuất video</h1><p class="sub">Xem lại rồi tải về máy.</p></div>
+    <video id="expVid" controls playsinline loop hidden></video>
+    <div class="empty" id="expEmpty">Chưa có video. Làm bước 1–2 rồi bấm Hoàn tất.</div>
+    <div class="card">
+      <div class="meta" id="meta"><span>Trạng thái</span><b>Chưa có video</b></div>
+      <ul class="qa" id="qa"></ul>
     </div>
+    <details class="card"><summary>Tùy chọn xuất</summary>
+      <div class="row">
+        <div><label for="fmt">Định dạng</label><select id="fmt"><option value="mp4" disabled>MP4 H.264 (cần máy chủ)</option><option value="webm" selected>WebM</option></select></div>
+        <div><label for="res">Độ phân giải</label><select id="res"><option value="1080" disabled>1080 × 1920</option><option value="720" disabled>720 × 1280</option><option value="576" selected>576 × 1024</option></select></div>
+      </div>
+      <p class="note" id="expNote">Video ghi ngay trong trình duyệt, giữ trang mở khi dựng.</p>
+    </details>
+    <button class="btn sec" id="btnNew">↺ Làm video khác</button>
+    <div class="act"><button class="btn pri" id="btnDl" disabled>⬇ Tải video</button></div>
   </section>
 </main>
+<nav class="tabs" aria-label="Các bước">
+  <button class="tab on" data-s="1"><span class="tn">1</span>Ảnh</button>
+  <button class="tab" data-s="2"><span class="tn">2</span>Kịch bản</button>
+  <button class="tab" data-s="3"><span class="tn">3</span>Dựng</button>
+  <button class="tab" data-s="4"><span class="tn">4</span>Xuất</button>
+</nav>
 
 <!-- EDITOR: ghim & kẻ đường (skill tiện ích trên ảnh vệ tinh + skill kẻ đường ảnh drone) -->
 <div id="ed">
@@ -244,9 +303,15 @@ const agBox=$('#agents');
 AGENTS.forEach(a=>{const d=document.createElement('div');d.className='ag';d.id='ag-'+a.id;
  d.innerHTML=`<div class="ic">${a.ic}</div><div><div class="nm">${a.nm}</div><div class="ds">${a.ds}</div></div><span class="stt">Chờ</span><div class="bar"><i></i></div>`;agBox.appendChild(d);});
 const LBL={run:'Đang chạy',ok:'Xong',skip:'Bỏ qua',err:'Lỗi',idle:'Chờ'};
-function ag(id,st,p){const d=$('#ag-'+id);d.className='ag '+(st==='idle'?'':st);d.querySelector('.stt').textContent=LBL[st];if(p!=null)d.querySelector('.bar i').style.width=(p*100)+'%';}
-function log(who,msg){const l=$('#log');l.innerHTML+=`<br><span class="a">[${who}]</span> ${msg}`;l.scrollTop=l.scrollHeight;}
-function steps(n){[...document.querySelectorAll('.step')].forEach((s,i)=>s.className='step'+(i<n?' done':i===n?' on':''));}
+const AGP={};
+function ag(id,st,p){const d=$('#ag-'+id);d.className='ag '+(st==='idle'?'':st);d.querySelector('.stt').textContent=LBL[st];if(p!=null)d.querySelector('.bar i').style.width=(p*100)+'%';
+ AGP[id]=st==='ok'||st==='skip'||st==='err'?1:st==='idle'?0:(p??0);const W8={orc:.5,med:1,wri:1,map:1,ovl:.5,cmp:4,qa:1};let t=0,w=0;for(const k in W8){t+=W8[k]*(AGP[k]||0);w+=W8[k];}$('#pfill').style.width=(t/w*100).toFixed(1)+'%';}
+function log(who,msg){const l=$('#log');l.innerHTML+=`<br><span class="a">[${who}]</span> ${msg}`;l.scrollTop=l.scrollHeight;if(S.busy)$('#stat').textContent=who+': '+msg;}
+// bước: 1 Ảnh · 2 Kịch bản · 3 Dựng · 4 Xuất
+let CUR=1,DONE=0;
+function goStep(n){CUR=n;steps(DONE);document.querySelectorAll('.scr').forEach(x=>x.classList.toggle('on',x.id==='scr-'+n));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',+t.dataset.s===n));window.scrollTo(0,0);}
+function steps(n){DONE=n;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('done',+t.dataset.s<=n&&+t.dataset.s!==CUR));}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>goStep(+t.dataset.s));
 function seg(sel,cb){document.querySelectorAll(sel+' .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll(sel+' .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');cb(c.dataset.v);});}
 
 /* ---------- UPLOAD ---------- */
@@ -275,16 +340,16 @@ function renderThumbs(){
   const n=m.ov.items.length;
   d.innerHTML=(m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`)+
   `<span class="tag">${m.type==='image'?'Ảnh':'Video '+Math.round(m.dur)+'s'}</span><span class="ix">${i+1}</span>
-   ${n?`<span class="pinb">📍 ${n} đồ họa</span>`:''}<button class="edit">✎ Ghim</button>
-   <div class="ctl"><button data-a="l">◀</button><button data-a="x">✕</button><button data-a="r">▶</button></div>`;
-  d.querySelector('.edit').onclick=()=>openEditor(i);
+   ${n?`<span class="pinb">📍 ${n}</span>`:''}
+   <div class="ctl"><button data-a="l" aria-label="Lên trước">◀</button><button data-a="e" aria-label="Cắm ghim, kẻ đường">✎</button><button data-a="x" aria-label="Xóa">✕</button><button data-a="r" aria-label="Ra sau">▶</button></div>`;
   d.querySelectorAll('.ctl button').forEach(b=>b.onclick=()=>{const a=b.dataset.a;
+   if(a==='e'){openEditor(i);return;}
    if(a==='x'){S.media.splice(i,1);}else{const j=a==='l'?i-1:i+1;if(j<0||j>=S.media.length)return;[S.media[i],S.media[j]]=[S.media[j],S.media[i]];}
    renderThumbs();});
   box.appendChild(d);});
- const has=S.media.length>0||coordsOk();$('#btnGo').disabled=!has||S.busy;$('#btnPreview').disabled=!S.media.length||S.busy;
- $('#goHint').textContent=has?`${S.media.length} file${coordsOk()?' + cảnh bản đồ hạ tầng':''} · video khoảng ${Math.round(buildPlan().T)} giây${coordsOk()&&!S.map?' + phần bản đồ':''}`:'Tải lên ít nhất 1 ảnh/video, hoặc nhập tọa độ dự án để bắt đầu.';
- if(has)steps(S.blob?3:1);
+ const has=S.media.length>0||coordsOk();$('#btnGo').disabled=!has||S.busy;$('#btnNext1').disabled=!has;$('#btnPreview').disabled=!S.media.length||S.busy;$('#thumbTip').hidden=!S.media.length;
+ $('#goHint').textContent=has?`${S.media.length} file${coordsOk()?' + cảnh bản đồ hạ tầng':''} · video khoảng ${Math.round(buildPlan().T)} giây${coordsOk()&&!S.map?' + phần bản đồ':''}`:'Chọn ít nhất 1 ảnh hoặc video (hoặc nhập tọa độ dự án).';
+ steps(S.blob?4:has?1:0);
 }
 
 function coordsOk(){const a=parseFloat($('#pLat').value),b=parseFloat($('#pLon').value);return isFinite(a)&&isFinite(b)&&Math.abs(a)<=85&&Math.abs(b)<=180;}
@@ -528,11 +593,11 @@ async function play(P,record){
     src.connect(g).connect(dst);stream.addTrack(dst.stream.getAudioTracks()[0]);mus={src,ac};}catch(e){log('Dựng hình','Không trộn được nhạc nền: '+e.message);}}
   const opt={videoBitsPerSecond:8e6};if(REC_MIME)opt.mimeType=REC_MIME;
   rec=new MediaRecorder(stream,opt);rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};done=new Promise(r=>rec.onstop=r);rec.start(250);if(mus)mus.src.start();}
- const N=Math.round(P.T*FPS),t0=performance.now();let late=0,maxMs=0;S.stop=false;
+ const N=Math.round(P.T*FPS),t0=performance.now();let late=0,maxMs=0;S.stop=false;S.playing=true;
  for(let i=0;i<N&&!S.stop;i++){const a=performance.now();RENDER(P,i/FPS);maxMs=Math.max(maxMs,performance.now()-a);
   if(record&&i%15===0)ag('cmp','run',i/N);
   const wait=t0+(i+1)*1000/FPS-performance.now();if(wait>0)await sleep(wait);else{late++;await sleep(0);}}
- S.media.forEach(m=>{if(m.type==='video')m.el.pause();});
+ S.playing=false;S.media.forEach(m=>{if(m.type==='video')m.el.pause();});if(P.map&&P.map.video)P.map.video.pause();
  if(record){await sleep(300);rec.stop();await done;if(mus)try{mus.src.stop();}catch(e){}return{blob:new Blob(chunks,{type:(REC_MIME||'video/webm').split(';')[0]}),late,maxMs,elapsed:(performance.now()-t0)/1000};}
  return{late,maxMs};
 }
@@ -600,7 +665,7 @@ async function checkServer(){
   AIX.sample=smp;AIX.dl=dl;if(smp){try{const lim=await smp.limits();AIX.maxImg=lim.images?Math.min(lim.images.maxCount,20):0;}catch(e){AIX.maxImg=0;}}
   el.innerHTML=`Agent AI: ${smp?'<b>bật</b> (Claude của bạn)':'<i>tắt</i>'} · Video: <b>${vfmt}</b>`;
   $('#res').options[2].textContent='576 × 1024';$('#expNote').textContent=`Video ghi ${vfmt} ngay trên trang (kèm nhạc nền nếu có). Giữ trang mở khi dựng. Bấm Tải video, claude.ai sẽ hỏi lưu file.`;
-  const mapNote=document.querySelector('#mapNote');if(mapNote)mapNote.innerHTML='<b>Trên claude.ai cảnh bản đồ vệ tinh chưa chạy được</b> (trang không được gọi tới máy chủ bản đồ). Dùng bản chạy trên máy (<code>npm start</code>) để có cảnh này. Ghim và kẻ đường trên ảnh vẫn dùng được.';
+  const mapNote=document.querySelector('#mapNote');if(mapNote)mapNote.innerHTML='Nhập tọa độ thật (nhấn giữ trên Google Maps để copy). Khi bấm Hoàn tất, app gửi việc cho máy chủ: tự tìm ga, TTTM, bến xe, sân bay, cầu quanh dự án, tải ảnh vệ tinh và dựng cảnh bản đồ (3–6 phút). Lần đầu claude.ai hỏi cho phép kết nối Claude Code Remote, bấm đồng ý. Có tọa độ thì không cần ảnh.';
   return;}
  if(!/^https?:$/.test(location.protocol)){el.innerHTML=`Chạy không máy chủ · <i>AI tắt</i> · Video: ${vfmt}`;return;}
  try{const r=await fetch('/api/health');const j=await r.json();Object.assign(SRV,{on:true,claude:!!j.claude,ffmpeg:!!j.ffmpeg});
@@ -729,12 +794,56 @@ async function runVisualQA(P){
   return out.issues.map(x=>{const bad=x.severity!=='low';log('Kiểm duyệt',`${bad?'⚠':'•'} ${x.time.toFixed(1)}s: ${x.problem} → ${x.fix}`);return [!bad,`${x.time.toFixed(1)}s: ${x.problem} (gợi ý: ${x.fix})`];});
  }catch(e){log('Kiểm duyệt','Không gọi được Claude ('+errText(e)+'), chỉ dùng kiểm tra tự động.');return [];}}
 checkServer();
+$('#btnNext1').onclick=()=>{steps(1);goStep(2);};
+$('#btnNext3').onclick=()=>goStep(4);
+$('#btnNew').onclick=()=>{if(S.busy)return;S.media=[];S.ai=null;S.map=null;renderThumbs();$('#script').value='';goStep(1);};
 
 /* ---------- AGENT BẢN ĐỒ HẠ TẦNG ---------- */
+// Trên claude.ai trang bị chặn mạng ngoài, nên giống QBK Studio: ghi job vào db `mapJobs/<id>`, gọi tác vụ đám mây
+// (worker/render-map.mjs dựng video bản đồ, tải lên kho asset của app, ghi lại job), rồi phát video đó làm cảnh bản đồ.
+const MAP_TRIGGER='trig_01CMfHyyRqT4UNzT3wjGv4YM';
+const hashStr=t=>{let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
+function videoMap(url,meta){return new Promise((res,rej)=>{
+ const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';
+ const TI=+meta.TI||2.6,T=+meta.T;
+ const at=(X,tt)=>{tt=Math.max(0,Math.min(tt,TI+T-0.05));if(Math.abs(v.currentTime-tt)>0.35){try{v.currentTime=tt;}catch(e){}}
+  if(S.playing){if(v.paused)v.play().catch(()=>{});}else if(!v.paused)v.pause();
+  if(v.readyState>=2)X.drawImage(v,0,0,W,H);else{X.fillStyle='#0a0f1c';X.fillRect(0,0,W,H);}};
+ const eng={T,N:+meta.N||meta.themes.length,themes:meta.themes,video:v,renderIntro:(X,t)=>at(X,t),render:(X,t)=>at(X,TI+t)};
+ v.onloadeddata=()=>res(eng);v.onerror=()=>rej(new Error('không tải được video bản đồ'));v.src=url;});}
+async function runMapViaCloud(I,L){
+ const [db,mcp]=await Promise.all([window.claude.use('db'),window.claude.use('mcp')]);
+ if(!db)throw new Error('trang chưa dùng được cơ sở dữ liệu của claude.ai (cần đăng nhập)');
+ const id='m'+hashStr(JSON.stringify([I.lat,I.lon,I.pois,I.name]));const ref=db.doc('mapJobs/'+id);
+ const now=()=>new Date().toISOString();const age=x=>(Date.now()-Date.parse(x.updatedAt||x.createdAt||0))/6e4;
+ let d=(await ref.get()).data();
+ if(d&&d.status==='xong'&&d.video){L('Vị trí này đã có video bản đồ, dùng lại.');}
+ else{
+  if(!d||d.status==='loi'||age(d)>20){
+   await ref.set({lat:I.lat,lon:I.lon,name:I.name,pois:I.pois.map(([cat,name])=>({cat,name})),status:'moi',step:'Chờ máy chủ nhận việc',progress:0.1,createdAt:now(),updatedAt:now()});
+   if(!mcp)throw new Error('trang chưa được phép gọi máy chủ (kết nối Claude Code Remote)');
+   L('Gửi việc cho máy chủ dựng bản đồ (tìm hạ tầng, tải ảnh vệ tinh, vẽ tuyến). Thường mất 3–6 phút...');
+   await mcp.callTool('Claude Code Remote','fire_trigger',{trigger_id:MAP_TRIGGER,text:'mapJobs/'+id});
+  }else L('Máy chủ đang dựng bản đồ cho vị trí này, chờ tiếp...');
+  d=await new Promise((res,rej)=>{let un=()=>{},last='';
+   const to=setTimeout(()=>{un();rej(new Error('quá 15 phút chưa nhận được video bản đồ, thử bấm Hoàn tất lại'));},15*60e3);
+   un=ref.onSnapshot(s=>{const x=s.data();if(!x)return;
+    if(x.step&&x.step!==last){last=x.step;L(x.step);}ag('map','run',Math.max(.05,Math.min(.95,+x.progress||.2)));
+    if(x.status==='xong'&&x.video){clearTimeout(to);un();res(x);}
+    else if(x.status==='loi'){clearTimeout(to);un();rej(new Error(x.error||'máy chủ báo lỗi'));}},
+    e=>{clearTimeout(to);rej(new Error('mất kết nối cơ sở dữ liệu ('+(e&&e.code)+')'));});});
+ }
+ return videoMap('/_blob/'+encodeURIComponent(d.video),d.meta||{});}
+
 async function runMapAgent(I){
  const L=m=>log('Bản đồ hạ tầng',m);
  if(!coordsOk()){L('Chưa nhập tọa độ, bỏ qua cảnh bản đồ (không tự bịa vị trí).');S.map=null;ag('map','skip',1);return;}
- if(IN_ARTIFACT){L('Trên claude.ai trang không được gọi tới máy chủ bản đồ (Esri, OSRM, Photon), bỏ cảnh bản đồ. Dùng bản chạy trên máy để có cảnh này.');S.map=null;ag('map','skip',1);return;}
+ if(IN_ARTIFACT){const key=JSON.stringify([I.lat,I.lon,I.pois,I.name]);
+  if(S.map&&S.mapKey===key){L(`Dùng lại video bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
+  try{ag('map','run',.05);S.map=null;S.map=await runMapViaCloud(I,L);S.mapKey=key;
+   L(`Đã nhận video bản đồ: ${S.map.themes.map(t=>t.title).join(' → ')} → Kết nối toàn vùng (${S.map.T.toFixed(1)}s).`);ag('map','ok',1);}
+  catch(e){L('Chưa dựng được cảnh bản đồ: '+errText(e));S.map=null;ag('map','err');}
+  return;}
  const key=JSON.stringify([I.lat,I.lon,I.pois,I.name]);
  if(S.map&&S.mapKey===key){L(`Dùng lại cảnh bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
  if(!window.MapEngine){L('Thiếu file map-engine.js cạnh index.html.');ag('map','err');return;}
@@ -760,7 +869,7 @@ $('#btnStop').onclick=()=>{S.stop=true;};
 function lock(b){$('#btnGo').disabled=b||!(S.media.length||coordsOk());$('#btnPreview').disabled=b||!S.media.length;}
 $('#btnGo').onclick=async()=>{
  if(S.busy||!(S.media.length||coordsOk()))return;S.busy=true;
- const mf=$('#music').files[0];S.music=null;if(mf){try{S.actx=S.actx||new (window.AudioContext||window.webkitAudioContext)();S.actx.resume();}catch(e){}}lock(true);steps(2);
+ const mf=$('#music').files[0];S.music=null;if(mf){try{S.actx=S.actx||new (window.AudioContext||window.webkitAudioContext)();S.actx.resume();}catch(e){}}lock(true);goStep(3);$('#t3').textContent='Đang dựng video…';$('#btnNext3').disabled=true;$('#btnNext3').textContent='Đang dựng…';
  AGENTS.forEach(a=>ag(a.id,'idle',0));$('#log').innerHTML='<span class="a">[hệ thống]</span> Bắt đầu job mới.';$('#btnDl').disabled=true;$('#qa').innerHTML='';
  try{
   ag('orc','run',.3);let P=buildPlan();
@@ -796,10 +905,12 @@ $('#btnGo').onclick=async()=>{
   $('#qa').innerHTML=checks.map(c=>`<li class="${c[0]?'pass':'fail'}">${c[0]?'✔':'⚠'} ${c[1]}</li>`).join('');
   ag('qa','ok',1);
   if(S.url)URL.revokeObjectURL(S.url);S.blob=R.blob;S.url=URL.createObjectURL(R.blob);
-  const v=document.createElement('video');v.src=S.url;v.controls=true;v.loop=true;v.playsInline=true;cv.style.display='none';$('#phone').appendChild(v);v.play().catch(()=>{});
+  const v=document.createElement('video');v.src=S.url;v.controls=true;v.loop=true;v.playsInline=true;v.muted=true;cv.style.display='none';$('#phone').appendChild(v);
+  const ev=$('#expVid');ev.src=S.url;ev.hidden=false;$('#expEmpty').hidden=true;
   $('#meta').innerHTML=`<span>Trạng thái</span><b style="color:var(--ok)">Sẵn sàng xuất</b><span>Kích thước</span><b>576 × 1024 · 30fps</b><span>Thời lượng</span><b>${P.T.toFixed(1)} giây</b><span>Dung lượng</span><b>${(R.blob.size/1e6).toFixed(1)} MB · ${REC_EXT.toUpperCase()}</b>`;
-  $('#btnDl').disabled=false;steps(3);log('Điều phối','Hoàn tất. Video đã sẵn sàng ở mục Xuất video.');
- }catch(e){log('Lỗi',String(e&&e.message||e));AGENTS.forEach(a=>{const d=$('#ag-'+a.id);if(d.classList.contains('run'))ag(a.id,'err');});}
+  $('#btnDl').disabled=false;log('Điều phối','Hoàn tất. Video đã sẵn sàng ở mục Xuất video.');$('#t3').textContent='Video đã xong ✓';$('#stat').textContent='Bấm Tiếp để xem lại và tải về.';
+  $('#btnNext3').disabled=false;$('#btnNext3').textContent='Tiếp: Xuất video →';steps(4);goStep(4);
+ }catch(e){log('Lỗi',String(e&&e.message||e));$('#t3').textContent='Chưa dựng được video';$('#stat').textContent=String(e&&e.message||e);$('#btnNext3').textContent='Tiếp: Xuất video →';AGENTS.forEach(a=>{const d=$('#ag-'+a.id);if(d.classList.contains('run'))ag(a.id,'err');});}
  S.busy=false;lock(false);
 };
 const fileBase=()=>($('#pName').value.trim()||'video-bds').normalize('NFC').replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'').toLowerCase()||'video-bds';

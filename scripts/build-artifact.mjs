@@ -8,7 +8,7 @@ const src = fs.readFileSync(path.join(root, "app/index.html"), "utf8");
 const head = src.slice(src.indexOf("<head>") + 6, src.indexOf("</head>"));
 const body = src.slice(src.indexOf("<body>") + 6, src.lastIndexOf("</body>"));
 const title = head.match(/<title>[\s\S]*?<\/title>/)[0];
-const styles = head.match(/<style>[\s\S]*?<\/style>/g).join("\n");
+const styles = [...(head.match(/<link rel="stylesheet"[^>]*>/g) || []), ...head.match(/<style>[\s\S]*?<\/style>/g)].join("\n");
 const out = `${title}\n<meta name="claude:viewport-fit-sides" content="cover">\n${styles}\n${body.trim()}\n`;
 const dir = path.join(root, "dist/artifact");
 fs.mkdirSync(dir, { recursive: true });
