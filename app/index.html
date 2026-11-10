@@ -801,7 +801,7 @@ $('#btnNew').onclick=()=>{if(S.busy)return;S.media=[];S.ai=null;S.map=null;rende
 /* ---------- AGENT BẢN ĐỒ HẠ TẦNG ---------- */
 // Trên claude.ai trang bị chặn mạng ngoài, nên giống QBK Studio: ghi job vào db `mapJobs/<id>`, gọi tác vụ đám mây
 // (worker/render-map.mjs dựng video bản đồ, tải lên kho asset của app, ghi lại job), rồi phát video đó làm cảnh bản đồ.
-const MAP_TRIGGER=''; // id tác vụ đám mây "QBK BĐS Video: dựng cảnh bản đồ"
+const MAP_TRIGGER='trig_01XbZxViW3JSyAuEDusc9yB6'; // id tác vụ đám mây "QBK BĐS Video: dựng cảnh bản đồ"
 const hashStr=t=>{let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
 function videoMap(url,meta){return new Promise((res,rej)=>{
  const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';
