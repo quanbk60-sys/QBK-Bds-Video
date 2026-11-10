@@ -813,7 +813,7 @@ async function runWriterAgent(){
  L(`Kiểu chữ: ${S.cap==='top'?'tiêu đề trên, chữ trong *...* tô vàng':'thẻ dưới'}.`);ag('wri','ok',1);}
 async function runVisualQA(P){
  if(!aiMode())return [];
- try{const ts=[1.2];if(P.map)for(let i=0;i<P.map.N;i++)ts.push(P.INTRO+i*4.6+4.0);P.scenes.forEach(s=>ts.push(s.t0+s.d*0.6));ts.push(P.T-1);
+ try{const ts=[1.2];if(P.map){ts.push(P.INTRO+2);for(let i=0;i<P.map.N;i++)ts.push(P.INTRO+(P.map.PS||0)+i*4.6+4.0);}P.scenes.forEach(s=>ts.push(s.t0+s.d*0.6));ts.push(P.T-1);
   const pick=ts.length>10?ts.filter((_,i)=>i%Math.ceil(ts.length/10)===0):ts;const c=document.createElement('canvas');c.width=288;c.height=512;const cx=c.getContext('2d');
   const frames=pick.map(t=>{RENDER(P,t);const c2=document.createElement('canvas');c2.width=288;c2.height=512;c2.getContext('2d').drawImage(cv,0,0,288,512);return{t,c:c2};});
   log('Kiểm duyệt',`Gửi ${frames.length} khung hình cho Claude xem lỗi trình bày...`);
@@ -837,7 +837,7 @@ function videoMap(url,meta){return new Promise((res,rej)=>{
  const at=(X,tt)=>{tt=Math.max(0,Math.min(tt,TI+T-0.05));if(Math.abs(v.currentTime-tt)>0.35){try{v.currentTime=tt;}catch(e){}}
   if(S.playing){if(v.paused)v.play().catch(()=>{});}else if(!v.paused)v.pause();
   if(v.readyState>=2)X.drawImage(v,0,0,W,H);else{X.fillStyle='#0a0f1c';X.fillRect(0,0,W,H);}};
- const eng={T,N:+meta.N||meta.themes.length,themes:meta.themes,video:v,renderIntro:(X,t)=>at(X,t),render:(X,t)=>at(X,TI+t)};
+ const eng={T,N:+meta.N||meta.themes.length,PS:+meta.PS||0,themes:meta.themes,video:v,renderIntro:(X,t)=>at(X,t),render:(X,t)=>at(X,TI+t)};
  v.onloadeddata=()=>res(eng);v.onerror=()=>rej(new Error('không tải được video bản đồ'));v.src=url;});}
 async function runMapViaCloud(I,L){
  const [db,mcp]=await Promise.all([window.claude.use('db'),window.claude.use('mcp')]);

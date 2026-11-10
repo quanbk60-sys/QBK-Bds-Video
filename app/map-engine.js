@@ -103,7 +103,7 @@ function build(cfg,pois){
  themes.forEach(th=>th.items.forEach(p=>{const pts=p.coords.map(c=>[mx(c[0]),my(c[1])]);const cum=[0];
   for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
   const r={p,th,pts,cum,end:pts[pts.length-1]};routes.push(r);}));
- const N=themes.length,SC=4.6,OV=4.8,T=N*SC+OV;
+ const N=themes.length,SC=4.6,OV=4.8,PS=3.8,T=PS+N*SC+OV; // PS: cảnh cận dự án + khoanh vùng
  const ROW=30,chkTop=n=>CARD_B-(46+ROW*n),LEG_TOP=CARD_B-(46+26*N);
  const kmPerMx=40075.017*Math.cos(cfg.lat*Math.PI/180);
  const flat=document.createElement('canvas');flat.width=1400;flat.height=2100;const fx=flat.getContext('2d');
@@ -118,12 +118,19 @@ function build(cfg,pois){
   for(const p of pts){const q=S(p[0],p[1]);if(q[0]<70||q[0]>W-70||q[1]<top||q[1]>bottom){ok=false;break;}}if(ok)return {z,phi:PHI};}return {z:8,phi:PHI};}
  const fits=themes.map(th=>fitC([proj,...routes.filter(r=>r.th===th).flatMap(r=>r.pts)],250,chkTop(th.items.length)-56));
  const fitAll=fitC([proj,...routes.flatMap(r=>r.pts)],250,LEG_TOP-50);
- const zi0=fits.length?fits[0].z:14;
- const intro0={z:Math.min(16.3,zi0+1.5),phi:15*Math.PI/180},intro1={z:Math.min(16.3,zi0+1.0),phi:PHI};
+ // Vùng dự án: khung ranh giới (bbox từ dữ liệu bản đồ) nếu có, không thì vòng tròn ~200 m quanh điểm dự án
+ const bb=cfg.area&&Array.isArray(cfg.area.bbox)&&cfg.area.bbox.length===4?cfg.area.bbox:null;
+ const AREA=bb?[[bb[0],bb[1]],[bb[2],bb[1]],[bb[2],bb[3]],[bb[0],bb[3]]].map(([lo,la])=>[mx(lo),my(la)])
+  :Array.from({length:56},(_,i)=>{const a=i/56*Math.PI*2,d=0.2/kmPerMx;return [proj[0]+d*Math.cos(a),proj[1]+d*Math.sin(a)];});
+ function fitBox(pts,xm,top,bottom,zmax){for(let z=zmax;z>9;z-=0.02){const S=mkProj({z,phi:PHI});
+  if(pts.every(p=>{const q=S(p[0],p[1]);return q[0]>=xm&&q[0]<=W-xm&&q[1]>=top&&q[1]<=bottom;}))return z;}return 14;}
+ const zClose=fitBox([proj,...AREA],120,330,700,17.3);
+ const intro0={z:zClose-3.4,phi:15*Math.PI/180},intro1={z:zClose,phi:PHI},close1={z:zClose+0.25,phi:PHI};
  const mixc=(a,b,u)=>({z:lerp(a.z,b.z,u),phi:lerp(a.phi,b.phi,u)});
  const introCam=(t,TI)=>mixc(intro0,intro1,ease(t/TI));
- function camAt(t){if(t>=N*SC)return mixc(fits[N-1],fitAll,ease((t-N*SC)/1.8));
-  const i=Math.floor(t/SC);return mixc(i===0?intro1:fits[i-1],fits[i],ease((t-i*SC)/1.3));}
+ function camAt(t){if(t<PS)return mixc(intro1,close1,ease(t/PS));t-=PS;
+  if(t>=N*SC)return mixc(N?fits[N-1]:close1,fitAll,ease((t-N*SC)/1.8));
+  const i=Math.min(N-1,Math.floor(t/SC));return mixc(i===0?close1:fits[i-1],fits[i],ease((t-i*SC)/1.3));}
 
  function tileList(cam){const zi=Math.min(17,Math.ceil(cam.z)),n=2**zi,ts=256*2**(cam.z-zi),g=geom(cam.phi),cxT=proj[0]*n,cyT=proj[1]*n;
   const x0=Math.floor(cxT-g.FU/ts),x1=Math.floor(cxT+g.FU/ts),y0=Math.floor(cyT-g.VF/ts),y1=Math.floor(cyT+g.VB/ts);const out=[];
@@ -215,18 +222,36 @@ function build(cfg,pois){
    if(topPt&&topPt[1]>200&&topPt[1]<LEG_TOP-20&&topPt[0]>M+30&&topPt[0]<W-M-30){X.font=FONT(800,12);const t=R+' km',w=X.measureText(t).width+14;
     X.fillStyle='rgba(8,14,30,.85)';X.beginPath();X.roundRect(topPt[0]-w/2,topPt[1]-10,w,20,10);X.fill();X.fillStyle='#fff';X.textAlign='center';X.textBaseline='middle';X.fillText(t,topPt[0],topPt[1]+0.5);}});
   X.restore();}
+ function drawArea(S,prog,alpha,tt){if(prog<=0)return;const q=AREA.map(p=>S(p[0],p[1]));X.save();X.globalAlpha=alpha;
+  X.beginPath();q.forEach((v,i)=>i?X.lineTo(v[0],v[1]):X.moveTo(v[0],v[1]));X.closePath();X.fillStyle=`rgba(255,200,60,${0.2*ease(prog)})`;X.fill();
+  // viền vẽ dần theo chu vi
+  const segs=q.map((v,i)=>[v,q[(i+1)%q.length]]);const L=segs.reduce((a,[u,v])=>a+Math.hypot(v[0]-u[0],v[1]-u[1]),0);let left=L*ease(prog);
+  X.beginPath();X.moveTo(q[0][0],q[0][1]);for(const [u,v] of segs){const d=Math.hypot(v[0]-u[0],v[1]-u[1]);if(left>=d){X.lineTo(v[0],v[1]);left-=d;}else{const k=left/(d||1);X.lineTo(u[0]+(v[0]-u[0])*k,u[1]+(v[1]-u[1])*k);break;}}
+  X.lineJoin='round';X.shadowColor='#ffd94f';X.shadowBlur=18;X.strokeStyle='#ffd94f';X.lineWidth=3.2;X.stroke();X.shadowBlur=0;X.strokeStyle='#fff7c9';X.lineWidth=1.2;X.stroke();
+  if(prog>=1){const ph=(tt*0.6)%1;const c=q.reduce((a,v)=>[a[0]+v[0]/q.length,a[1]+v[1]/q.length],[0,0]);const k=1+0.35*ph;
+   X.beginPath();q.forEach((v,i)=>{const x=c[0]+(v[0]-c[0])*k,y=c[1]+(v[1]-c[1])*k;i?X.lineTo(x,y):X.moveTo(x,y);});X.closePath();X.strokeStyle=`rgba(255,217,79,${0.6*(1-ph)})`;X.lineWidth=2;X.stroke();}
+  X.restore();}
+ function placeCard(u){if(u<=0)return;const top=CARD_B-108,y=top+(1-ease(u))*40;X.save();X.globalAlpha=ease(u);
+  X.beginPath();X.roundRect(M,y,W-2*M,CARD_B-top,18);X.fillStyle='rgba(9,16,38,.92)';X.fill();X.strokeStyle='rgba(255,217,79,.55)';X.lineWidth=1.4;X.stroke();
+  X.textAlign='left';X.textBaseline='middle';X.font=FONT(800,12);X.fillStyle='#ffd94f';X.fillText('VỊ TRÍ DỰ ÁN',M+18,y+24);
+  fitFont(cfg.name,800,22,13,W-2*M-36);X.fillStyle='#fff';X.fillText(cfg.name,M+18,y+54);
+  const sub=cfg.label||'Khu vực khoanh vàng trên bản đồ';fitFont(sub,500,13,9,W-2*M-36);X.fillStyle='rgba(230,235,245,.75)';X.fillText(sub,M+18,y+82);
+  X.restore();if(u>=1)RECTS.push([M,top,W-M,CARD_B]);}
  function footer(){X.save();X.textAlign='center';X.textBaseline='middle';const ft='Ảnh vệ tinh: Esri, Maxar · Đường: © OpenStreetMap · Số liệu ước tính';
   fitFont(ft,500,10,7,W-2*M);X.fillStyle='rgba(255,255,255,.55)';X.fillText(ft,W/2,H-46);X.restore();}
 
  function frame(cam,draw){const S=mkProj(cam);drawMap(cam);const pp=S(proj[0],proj[1]),psc=1.15*clamp(pp[2],.8,1.15);draw(S,pp,psc);footer();}
- function renderIntro(ctx,t,TI,rects){X=ctx;RECTS=rects||[];frame(introCam(t,TI),(S,pp,psc)=>{pinBody(pp[0],pp[1],'',psc*1.1,true);});}
+ function renderIntro(ctx,t,TI,rects){X=ctx;RECTS=rects||[];frame(introCam(t,TI),(S,pp,psc)=>{drawArea(S,ease((t-TI+0.9)/0.9)*0.6,1,t);pinBody(pp[0],pp[1],'',psc*1.1,true);});}
  function render(ctx,t,rects){X=ctx;RECTS=rects||[];t=clamp(t,0,T-1e-3);
-  frame(camAt(t),(S,pp,psc)=>{
+  const t0=t;frame(camAt(t),(S,pp,psc)=>{
    const pbody={x0:pp[0]-14*psc,y0:pp[1]-38*psc,x1:pp[0]+14*psc,y1:pp[1]};
+   if(t<PS){drawArea(S,0.6+0.4*ease(t/1.2),1,t);pinBody(pp[0],pp[1],'',psc*1.1,true);drawProjLabel(projLabel(pp,psc,CARD_B-122),psc);
+    title('Vị trí dự án',ease((t-0.1)/0.4)*(1-ease((t-(PS-0.35))/0.35)));placeCard((t-0.5)/0.5);return;}
+   t-=PS;drawArea(S,1,t>=N*SC?0.9:0.7,t0);
    if(t>=N*SC){const u=(t-N*SC);const bottom=LEG_TOP-14;rings(S,(u-0.6)/1.4);
     routes.forEach(r=>{drawRoute(S,r,1,.95);const e=S(r.end[0],r.end[1]);pinBody(e[0],e[1],r.th.color,.7*clamp(e[2],.75,1.15));});
     pinBody(pp[0],pp[1],'',psc,true);drawProjLabel(projLabel(pp,psc,bottom),psc);title('Kết nối toàn vùng',ease((u-0.3)/0.5));legend((u-1.0)/0.6);return;}
-   const i=Math.floor(t/SC),th=themes[i],τ=t-i*SC,bottom=chkTop(th.items.length)-14;
+   const i=Math.min(N-1,Math.floor(t/SC)),th=themes[i],τ=t-i*SC,bottom=chkTop(th.items.length)-14;
    routes.filter(r=>themes.indexOf(r.th)<i).forEach(r=>drawRoute(S,r,1,.35));
    const cur=routes.filter(r=>r.th===th);const prog=ease((τ-0.9)/1.7);
    const pl=projLabel(pp,psc,bottom);const avoid=[pl,pbody];const late=[];
@@ -241,7 +266,7 @@ function build(cfg,pois){
  function calibrate(){const c=document.createElement('canvas');c.width=W;c.height=H;const cx=c.getContext('2d');
   let t0=performance.now();for(let i=0;i<20;i++)render(cx,(i/20)*T);let ms=(performance.now()-t0)/20;
   if(ms>22){STEP=2;t0=performance.now();for(let i=0;i<20;i++)render(cx,(i/20)*T);ms=(performance.now()-t0)/20;}return {ms:+ms.toFixed(1),step:STEP};}
- return {T,themes,routes,N,prefetch,calibrate,renderIntro,render};
+ return {T,themes,routes,N,PS,prefetch,calibrate,renderIntro,render};
 }
 window.MapEngine={discover,route,build,THEMES};
 })();

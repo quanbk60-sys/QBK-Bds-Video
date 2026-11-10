@@ -4,10 +4,11 @@
 <script src="../app/map-engine.js"></script>
 <script>
 // Chạy một job bản đồ: tìm hạ tầng → tuyến → tải ảnh vệ tinh → quay đoạn bản đồ (mở đầu nghiêng + các cảnh chủ đề + toàn vùng).
-window.runJob = async (job) => {
+window.runJob = async (job) => { try { return await runJobInner(job); } catch (e) { throw new Error(String(e && e.stack || e)); } };
+async function runJobInner(job) {
   const logs = []; const L = (m) => { logs.push(m); console.log("[map] " + m); };
   const TI = 2.6, FPS = 30;
-  const cfg = { lat: +job.lat, lon: +job.lon, name: job.name || "DỰ ÁN", pois: (job.pois || []).map((p) => Array.isArray(p) ? p : [p.cat || "", p.name || ""]).filter((p) => p[1]) };
+  const cfg = { lat: +job.lat, lon: +job.lon, name: job.name || "DỰ ÁN", area: job.area || null, label: job.label || "", pois: (job.pois || []).map((p) => Array.isArray(p) ? p : [p.cat || "", p.name || ""]).filter((p) => p[1]) };
   const found = await MapEngine.discover(cfg, L);
   if (!found.length) throw new Error("Không tìm thấy hạ tầng nào quanh tọa độ này.");
   const pois = await MapEngine.route(cfg, found, L);
@@ -37,6 +38,6 @@ window.runJob = async (job) => {
   const buf = new Uint8Array(await blob.arrayBuffer()); let bin = "";
   for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
   const themes = eng.themes.map((t) => ({ title: t.title, items: t.items.map((p) => ({ name: p.name, km: +p.km.toFixed(1), min: Math.round(p.min) })) }));
-  return { webm: btoa(bin), themes, TI, T: eng.T, N: eng.N, SC: 4.6, late, logs };
-};
+  return { webm: btoa(bin), themes, TI, T: eng.T, N: eng.N, SC: 4.6, PS: eng.PS, late, logs };
+}
 </script></body></html>

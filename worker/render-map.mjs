@@ -22,7 +22,31 @@ export function coordsFrom(text) {
   return null;
 }
 const curl = (args) => execFileSync("curl", ["-sS", "-m", "30", ...args]).toString();
+// Ranh giới khu dự án (để khoanh vùng): extent của đối tượng OSM chứa điểm dự án, cỡ 60 m – 3 km.
+const extentOk = (e, lat, lon) => {
+  if (!Array.isArray(e) || e.length !== 4) return null;
+  const [minLon, maxLat, maxLon, minLat] = e;
+  if (!(lon >= minLon - 1e-4 && lon <= maxLon + 1e-4 && lat >= minLat - 1e-4 && lat <= maxLat + 1e-4)) return null;
+  const w = (maxLon - minLon) * 111 * Math.cos(lat * Math.PI / 180), h = (maxLat - minLat) * 111, d = Math.hypot(w, h);
+  return d >= 0.06 && d <= 3 ? [minLon, minLat, maxLon, maxLat] : null;
+};
+function findArea(lat, lon, feature) {
+  const own = feature && extentOk(feature.properties?.extent, lat, lon);
+  if (own) return own;
+  try {
+    const fs = JSON.parse(curl([`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=10&radius=0.3`])).features || [];
+    const prefer = (f) => (/^(landuse|place|building|leisure|amenity|tourism)$/.test(f.properties?.osm_key) ? 0 : 1);
+    for (const f of fs.sort((a, b) => prefer(a) - prefer(b))) { const b = extentOk(f.properties?.extent, lat, lon); if (b) return b; }
+  } catch (e) { console.error("Không lấy được ranh giới:", e.message); }
+  return null;
+}
 async function resolvePlace(job) {
+  const p0 = await resolvePoint(job);
+  p0.area = findArea(p0.lat, p0.lon, p0.feature);
+  delete p0.feature;
+  return p0;
+}
+async function resolvePoint(job) {
   if (Number.isFinite(+job.lat) && Number.isFinite(+job.lon) && job.lat !== null && job.lon !== null) return { lat: +job.lat, lon: +job.lon, how: "tọa độ" };
   let query = (job.query || "").trim();
   if (job.url) {
@@ -40,14 +64,14 @@ async function resolvePlace(job) {
   if (!f) throw new Error(`Không tìm thấy "${query}" trên bản đồ. Hãy dán tọa độ hoặc link Google Maps.`);
   const p = f.properties || {};
   const label = [p.name, p.street, p.district || p.city, p.state].filter(Boolean).join(", ");
-  return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], how: "tìm theo tên", label };
+  return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], how: "tìm theo tên", label, feature: f };
 }
 const [jobFile, outFile, metaFile] = process.argv.slice(2);
 if (!jobFile || !outFile || !metaFile) { console.error("Dùng: node worker/render-map.mjs job.json out.mp4 meta.json"); process.exit(2); }
 const job = JSON.parse(fs.readFileSync(jobFile, "utf8"));
 const place = await resolvePlace(job);
-job.lat = place.lat; job.lon = place.lon;
-console.log(`Vị trí: ${place.lat}, ${place.lon} (${place.how}${place.label ? ": " + place.label : ""})`);
+job.lat = place.lat; job.lon = place.lon; job.area = place.area ? { bbox: place.area } : null; job.label = place.label || "";
+console.log(`Vị trí: ${place.lat}, ${place.lon} (${place.how}${place.label ? ": " + place.label : ""}) · khoanh vùng: ${place.area ? "theo ranh giới " + place.area.map((v) => v.toFixed(4)).join(",") : "vòng tròn 200 m"}`);
 
 const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
 const browser = await chromium.launch({
