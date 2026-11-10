@@ -65,7 +65,8 @@ async function discover(cfg,log){
   let c=[];
   for(const [qi,[q,tag]] of th.q.entries()){
    try{for(const f of await photon(q,P.lat,P.lon,tag,th.r)){const n=f.properties.name||'';const d=km(P,fpos(f));
-     if(!n||d>th.r)continue;if(th.nameRe&&!th.nameRe.test(n))continue;c.push({f,d,qi,v:f.properties.osm_value});}}
+     if(!n||d>th.r)continue;if(th.nameRe&&!th.nameRe.test(n))continue;
+     if(/^(đối diện|đối điện|gần|cạnh|trạm|điểm dừng|bãi xe|lối vào|cổng|hướng)\b/i.test(n)||/bus stop|trạm xe buýt/i.test(n))continue;c.push({f,d,qi,v:f.properties.osm_value});}}
    catch(e){log(`Photon lỗi (${q}): ${e.message}`);}
    await sleep(120);}
   c.sort((a,b)=>a.d-b.d);
