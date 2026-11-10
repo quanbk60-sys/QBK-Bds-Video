@@ -133,6 +133,9 @@ textarea{min-height:130px}#pPois{min-height:70px}
 .empty{border:1.5px dashed var(--line);border-radius:14px;padding:22px 16px;color:var(--mut);text-align:center;font-size:14px}
 details.card>summary{font-weight:700;font-size:14px;color:var(--txt);min-height:28px;display:flex;align-items:center;gap:8px;margin:0}
 .qa:empty{display:none}
+.loc{border-color:var(--gold)}.loc input{border-color:#5a4a1e}
+.sub2 summary{margin-top:10px;font-size:13px}
+#locInfo b{color:var(--txt)}#locInfo.ok{color:var(--ok)}
 @media(min-width:900px){.act{bottom:calc(62px + env(safe-area-inset-bottom,0px))}}
 @media(max-width:760px){.edbox{flex-direction:column;align-items:center;overflow:auto;max-height:100%}.edcv{height:56vh;width:auto;max-width:100%}.edside{max-height:none;width:100%;min-width:0}#ed{align-items:flex-start;padding:12px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -146,7 +149,15 @@ details.card>summary{font-weight:700;font-size:14px;color:var(--txt);min-height:
 <main>
   <!-- BƯỚC 1 -->
   <section class="scr on" id="scr-1">
-    <div class="ttl"><h1>Ảnh &amp; video dự án</h1><p class="sub">Chọn ảnh vệ tinh, flycam, phối cảnh, nội thất hoặc clip quay thực tế.</p></div>
+    <div class="ttl"><h1>Vị trí, ảnh &amp; video</h1><p class="sub">Có vị trí là ra cảnh bản đồ hạ tầng. Thêm ảnh flycam, phối cảnh, nội thất nếu có.</p></div>
+    <div class="card loc">
+      <h2>📍 Vị trí dự án <span class="opt">để có cảnh bản đồ</span></h2>
+      <input id="pLoc" autocomplete="off" placeholder="Dán link Google Maps, tọa độ hoặc địa chỉ">
+      <p class="note" id="locInfo">Trên Google Maps: chọn vị trí dự án → <b>Chia sẻ</b> → <b>Sao chép đường liên kết</b> rồi dán vào đây. Hoặc gõ <i>10.8705, 106.738</i>, hoặc tên/địa chỉ dự án.</p>
+      <details class="sub2"><summary>Tiện ích muốn nhắc thêm <span class="opt">không bắt buộc</span></summary>
+        <textarea id="pPois" placeholder="Mỗi dòng: loại | tên&#10;KẾT NỐI | Sân bay Tân Sơn Nhất&#10;MUA SẮM | Vincom Thủ Đức"></textarea>
+        <p class="note">Không nhập thì AI tự tìm bệnh viện, ga, TTTM, bến xe, sân bay, cầu quanh dự án.</p></details>
+    </div>
     <div class="drop" id="drop"><span class="dico" aria-hidden="true">＋</span><b>Chọn ảnh, video</b><span class="sub">hoặc kéo thả vào đây · JPG, PNG, MP4, MOV</span></div>
     <input type="file" id="file" accept="image/*,video/*" multiple hidden>
     <div class="thumbs" id="thumbs"></div>
@@ -161,17 +172,7 @@ details.card>summary{font-weight:700;font-size:14px;color:var(--txt);min-height:
         <div><label for="pNote">Hotline</label><input id="pNote" inputmode="tel" placeholder="0909 xxx xxx"></div>
       </div>
     </div>
-    <details class="card">
-      <summary>Bản đồ hạ tầng tự động <span class="opt">không bắt buộc</span></summary>
-      <div class="row">
-        <div><label for="pLat">Vĩ độ (lat)</label><input id="pLat" inputmode="decimal" placeholder="21.0168"></div>
-        <div><label for="pLon">Kinh độ (lon)</label><input id="pLon" inputmode="decimal" placeholder="105.7810"></div>
-      </div>
-      <label for="pPois">Tiện ích muốn nhắc (mỗi dòng: loại | tên)</label>
-      <textarea id="pPois" style="min-height:70px" placeholder="KẾT NỐI | Vành đai 3&#10;METRO | Ga Phùng Khoang"></textarea>
-      <p class="note" id="mapNote">Chỉ cần tọa độ thật (nhấn giữ trên Google Maps để copy). Agent tự tìm ga, TTTM, bến xe, sân bay, cầu quanh dự án và dựng cảnh vệ tinh. Có tọa độ thì không cần ảnh.</p>
-    </details>
-    <div class="act"><p class="ahint" id="goHint">Chọn ít nhất 1 ảnh hoặc video.</p><button class="btn pri" id="btnNext1" disabled>Tiếp: Kịch bản →</button></div>
+    <div class="act"><p class="ahint" id="goHint">Nhập vị trí dự án hoặc chọn ít nhất 1 ảnh/video.</p><button class="btn pri" id="btnNext1" disabled>Tiếp: Kịch bản →</button></div>
   </section>
 
   <!-- BƯỚC 2 -->
@@ -348,12 +349,19 @@ function renderThumbs(){
    renderThumbs();});
   box.appendChild(d);});
  const has=S.media.length>0||coordsOk();$('#btnGo').disabled=!has||S.busy;$('#btnNext1').disabled=!has;$('#btnPreview').disabled=!S.media.length||S.busy;$('#thumbTip').hidden=!S.media.length;
- $('#goHint').textContent=has?`${S.media.length} file${coordsOk()?' + cảnh bản đồ hạ tầng':''} · video khoảng ${Math.round(buildPlan().T)} giây${coordsOk()&&!S.map?' + phần bản đồ':''}`:'Chọn ít nhất 1 ảnh hoặc video (hoặc nhập tọa độ dự án).';
+ $('#goHint').textContent=has?`${coordsOk()?'📍 Có cảnh bản đồ':'Chưa có vị trí'} · ${S.media.length} ảnh/video${coordsOk()&&!S.map?' · bản đồ khoảng 30 giây':''}`:'Nhập vị trí dự án hoặc chọn ít nhất 1 ảnh/video.';
  steps(S.blob?4:has?1:0);
 }
 
-function coordsOk(){const a=parseFloat($('#pLat').value),b=parseFloat($('#pLon').value);return isFinite(a)&&isFinite(b)&&Math.abs(a)<=85&&Math.abs(b)<=180;}
-['#pLat','#pLon'].forEach(id=>$(id).addEventListener('input',renderThumbs));
+// Vị trí: tọa độ, link Google Maps (dài hoặc rút gọn), hoặc địa chỉ/tên — máy chủ tự xác định phần còn lại
+function coordsFromText(t){try{t=decodeURIComponent(String(t||''));}catch(e){t=String(t||'');}
+ for(const re of [/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,/[?&](?:q|query|ll|center|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/,/@(-?\d+\.\d+),(-?\d+\.\d+)/,/^\s*(-?\d{1,2}\.\d+)\s*[,; ]\s*(-?\d{1,3}\.\d+)\s*$/]){const m=re.exec(t);if(m&&Math.abs(+m[1])<=85&&Math.abs(+m[2])<=180)return{lat:+m[1],lon:+m[2]};}return null;}
+function parseLoc(){const t=$('#pLoc').value.trim();if(!t)return null;const c=coordsFromText(t);if(c)return{...c,kind:'coords'};
+ const u=/https?:\/\/\S+/.exec(t);if(u)return{url:u[0],kind:'url'};return{query:t,kind:'query'};}
+function coordsOk(){return !!parseLoc();}
+function locNote(){const L=parseLoc(),el=$('#locInfo');if(!L){el.className='note';el.innerHTML='Trên Google Maps: chọn vị trí dự án → <b>Chia sẻ</b> → <b>Sao chép đường liên kết</b> rồi dán vào đây. Hoặc gõ <i>10.8705, 106.738</i>, hoặc tên/địa chỉ dự án.';return;}
+ el.className='note ok';el.textContent=L.kind==='coords'?`✔ Tọa độ ${L.lat.toFixed(5)}, ${L.lon.toFixed(5)}`:L.kind==='url'?'✔ Link Google Maps. Máy chủ sẽ đọc vị trí từ link khi dựng.':`✔ Máy chủ sẽ tìm "${L.query}" trên bản đồ. Kết quả tìm theo tên có thể lệch, dán link Google Maps sẽ chính xác hơn.`;}
+$('#pLoc').addEventListener('input',()=>{locNote();renderThumbs();});
 /* ---------- SCRIPT ---------- */
 seg('#tone',v=>S.tone=v);seg('#capStyle',v=>S.cap=v);
 const TONES={
@@ -367,12 +375,12 @@ const plain=s=>s.replace(/\*/g,'');
 
 /* ---------- PLAN ---------- */
 function info(){return{name:$('#pName').value.trim()||'DỰ ÁN CỦA BẠN',area:$('#pArea').value.trim(),cta:$('#pCta').value.trim()||'LIÊN HỆ NHẬN THÔNG TIN',
- note:$('#pNote').value.trim(),lat:parseFloat($('#pLat').value),lon:parseFloat($('#pLon').value),
+ note:$('#pNote').value.trim(),loc:parseLoc(),lat:(parseLoc()||{}).lat,lon:(parseLoc()||{}).lon,
  pois:$('#pPois').value.split('\n').map(s=>s.split('|').map(x=>x.trim())).filter(a=>a.length===2&&a[1])};}
 // overlay timeline: items appear one after another like the CapCut tutorials
 function ovTimes(items){let t=0.35;return items.map(it=>{const d={road:1.3,plot:1.1,card:1.1,ring:1.0}[it.t]||0.6;const st=t;t+=it.t==='road'?0.9:it.t==='plot'||it.t==='card'?0.75:0.5;return{st,d};});}
 function sceneDur(m){const base=m.type==='video'?clamp(m.dur||4,2.5,6):3.4;const n=m.ov.items.length;if(!n)return base;const tt=ovTimes(m.ov.items);const last=tt[n-1];return Math.max(base,last.st+last.d+1.4);}
-function aiKey(){return JSON.stringify([$('#script').value,S.tone,S.media.map(m=>m.id),$('#pName').value,$('#pArea').value,$('#pCta').value]);}
+function aiKey(){return JSON.stringify([$('#pLoc').value,$('#script').value,S.tone,S.media.map(m=>m.id),$('#pName').value,$('#pArea').value,$('#pCta').value]);}
 function buildPlan(){
  const I=info();let lines=$('#script').value.split('\n').map(s=>s.trim()).filter(Boolean);const auto=!lines.length;
  if(auto)lines=TONES[S.tone];
@@ -665,7 +673,6 @@ async function checkServer(){
   AIX.sample=smp;AIX.dl=dl;if(smp){try{const lim=await smp.limits();AIX.maxImg=lim.images?Math.min(lim.images.maxCount,20):0;}catch(e){AIX.maxImg=0;}}
   el.innerHTML=`Agent AI: ${smp?'<b>bật</b> (Claude của bạn)':'<i>tắt</i>'} · Video: <b>${vfmt}</b>`;
   $('#res').options[2].textContent='576 × 1024';$('#expNote').textContent=`Video ghi ${vfmt} ngay trên trang (kèm nhạc nền nếu có). Giữ trang mở khi dựng. Bấm Tải video, claude.ai sẽ hỏi lưu file.`;
-  const mapNote=document.querySelector('#mapNote');if(mapNote)mapNote.innerHTML='Nhập tọa độ thật (nhấn giữ trên Google Maps để copy). Khi bấm Hoàn tất, app gửi việc cho máy chủ: tự tìm ga, TTTM, bến xe, sân bay, cầu quanh dự án, tải ảnh vệ tinh và dựng cảnh bản đồ (3–6 phút). Lần đầu claude.ai hỏi cho phép kết nối Claude Code Remote, bấm đồng ý. Có tọa độ thì không cần ảnh.';
   return;}
  if(!/^https?:$/.test(location.protocol)){el.innerHTML=`Chạy không máy chủ · <i>AI tắt</i> · Video: ${vfmt}`;return;}
  try{const r=await fetch('/api/health');const j=await r.json();Object.assign(SRV,{on:true,claude:!!j.claude,ffmpeg:!!j.ffmpeg});
@@ -814,13 +821,13 @@ function videoMap(url,meta){return new Promise((res,rej)=>{
 async function runMapViaCloud(I,L){
  const [db,mcp]=await Promise.all([window.claude.use('db'),window.claude.use('mcp')]);
  if(!db)throw new Error('trang chưa dùng được cơ sở dữ liệu của claude.ai (cần đăng nhập)');
- const id='m'+hashStr(JSON.stringify([I.lat,I.lon,I.pois,I.name]));const ref=db.doc('mapJobs/'+id);
+ const id='m'+hashStr(JSON.stringify([I.loc,I.pois,I.name]));const ref=db.doc('mapJobs/'+id);
  const now=()=>new Date().toISOString();const age=x=>(Date.now()-Date.parse(x.updatedAt||x.createdAt||0))/6e4;
  let d=(await ref.get()).data();
  if(d&&d.status==='xong'&&d.video){L('Vị trí này đã có video bản đồ, dùng lại.');}
  else{
   if(!d||d.status==='loi'||age(d)>20){
-   await ref.set({lat:I.lat,lon:I.lon,name:I.name,pois:I.pois.map(([cat,name])=>({cat,name})),status:'moi',step:'Chờ máy chủ nhận việc',progress:0.1,createdAt:now(),updatedAt:now()});
+   const lc=I.loc||{};await ref.set({lat:isFinite(lc.lat)?lc.lat:null,lon:isFinite(lc.lon)?lc.lon:null,url:lc.url||'',query:lc.query||'',name:I.name,pois:I.pois.map(([cat,name])=>({cat,name})),status:'moi',step:'Chờ máy chủ nhận việc',progress:0.1,createdAt:now(),updatedAt:now()});
    if(!MAP_TRIGGER)throw new Error('máy chủ dựng bản đồ chưa được bật (đang chờ tạo tác vụ)');
    if(!mcp)throw new Error('trang chưa được phép gọi máy chủ (kết nối Claude Code Remote)');
    L('Gửi việc cho máy chủ dựng bản đồ (tìm hạ tầng, tải ảnh vệ tinh, vẽ tuyến). Thường mất 3–6 phút...');
@@ -834,17 +841,19 @@ async function runMapViaCloud(I,L){
     else if(x.status==='loi'){clearTimeout(to);un();rej(new Error(x.error||'máy chủ báo lỗi'));}},
     e=>{clearTimeout(to);rej(new Error('mất kết nối cơ sở dữ liệu ('+(e&&e.code)+')'));});});
  }
+ const pl=d.meta&&d.meta.place;if(pl)L(`Vị trí dùng để dựng: ${(+pl.lat).toFixed(5)}, ${(+pl.lon).toFixed(5)}${pl.label?' ('+pl.label+')':''}.`);
  return videoMap('/_blob/'+encodeURIComponent(d.video),d.meta||{});}
 
 async function runMapAgent(I){
  const L=m=>log('Bản đồ hạ tầng',m);
- if(!coordsOk()){L('Chưa nhập tọa độ, bỏ qua cảnh bản đồ (không tự bịa vị trí).');S.map=null;ag('map','skip',1);return;}
- if(IN_ARTIFACT){const key=JSON.stringify([I.lat,I.lon,I.pois,I.name]);
+ if(!coordsOk()){L('Chưa nhập vị trí dự án nên không có cảnh bản đồ. Nhập vị trí ở bước 1 để có cảnh này.');S.map=null;ag('map','skip',1);return;}
+ if(IN_ARTIFACT){const key=JSON.stringify([I.loc,I.pois,I.name]);
   if(S.map&&S.mapKey===key){L(`Dùng lại video bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
   try{ag('map','run',.05);S.map=null;S.map=await runMapViaCloud(I,L);S.mapKey=key;
    L(`Đã nhận video bản đồ: ${S.map.themes.map(t=>t.title).join(' → ')} → Kết nối toàn vùng (${S.map.T.toFixed(1)}s).`);ag('map','ok',1);}
   catch(e){L('Chưa dựng được cảnh bản đồ: '+errText(e));S.map=null;ag('map','err');}
   return;}
+ if(!isFinite(I.lat)){L('Bản chạy trên máy cần tọa độ hoặc link Google Maps đầy đủ có tọa độ (dạng @10.87,106.73).');S.map=null;ag('map','skip',1);return;}
  const key=JSON.stringify([I.lat,I.lon,I.pois,I.name]);
  if(S.map&&S.mapKey===key){L(`Dùng lại cảnh bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
  if(!window.MapEngine){L('Thiếu file map-engine.js cạnh index.html.');ag('map','err');return;}
