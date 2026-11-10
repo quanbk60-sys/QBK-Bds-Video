@@ -51,7 +51,8 @@ export async function toMp4({ input, output, res = "1080", music = null, musicVo
       "-c:a", "aac", "-b:a", "192k", "-shortest");
     if (dur) args.push("-t", dur.toFixed(2));
   } else {
-    args.push("-an");
+    // giữ âm thanh có sẵn (nhạc nền đã trộn trong trình duyệt), nếu có
+    args.push("-map", "0:v:0", "-map", "0:a?", "-c:a", "aac", "-b:a", "192k");
   }
   args.push(output);
   await run("ffmpeg", args);

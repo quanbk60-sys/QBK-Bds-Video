@@ -5,7 +5,16 @@ tải ảnh/video, thêm kịch bản (không bắt buộc), bấm **Hoàn tất
 
 ![Giao diện](docs/preview.png)
 
-## Chạy app
+## Mở app trên claude.ai (không cần cài gì)
+
+**https://claude.ai/artifact/UMaA2yMyDeAEbZT5R5bgZr**: mở trên điện thoại hoặc máy tính, giống QBK Studio.
+- Agent AI dùng Claude của tài khoản đang mở (lần đầu claude.ai hỏi cho phép).
+- Video ghi MP4 ngay trên trang (Chrome, Safari; trình duyệt không hỗ trợ thì WebM), nhạc nền trộn lúc ghi, bấm Tải video để lưu.
+- Cảnh bản đồ vệ tinh tự động không chạy trên claude.ai (trang không được gọi máy chủ bản đồ); dùng bản chạy trên máy bên dưới.
+
+Đăng lại sau khi sửa: `node scripts/build-artifact.mjs` rồi đăng `dist/artifact/index.html` (kèm `map-engine.js`) lên cùng link.
+
+## Chạy trên máy (đủ tính năng: bản đồ vệ tinh, MP4 1080×1920)
 
 Cần **Node.js 20+** và **FFmpeg** (`ffmpeg -version` chạy được).
 
