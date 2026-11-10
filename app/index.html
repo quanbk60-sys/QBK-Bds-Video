@@ -546,7 +546,7 @@ function intro(P,t){
  L.forEach((l,i)=>{fitFont(l,'900',62,26,W-2*M);X.fillStyle=goldGrad(400+i*72-30,400+i*72+30);X.shadowColor='rgba(0,0,0,.6)';X.shadowBlur=18;X.fillText(l,W/2,420+i*72-(L.length-1)*36+(1-a)*20);});
  X.shadowBlur=0;const by=420+(L.length-1)*36+66;
  if(P.I.area){fitFont(P.I.area,'700',20,12,W-2*M);X.fillStyle='#e6ebf5';X.fillText(P.I.area,W/2,by);}
- const hook=P.map?'Hạ tầng quanh dự án: *'+P.map.themes.map(th=>th.title.toLowerCase()).join(' · ')+'*':(P.hook||'');if(hook){X.globalAlpha=ease((t-0.5)/0.6)*(P.map?1-ease((t-2.0)/0.5):1);X.font=FONT('800',26);fitFont(plain(hook),'800',P.map?22:26,12,W-2*M);richLine(hook,W/2,by+56);}
+ const hook=P.map?'Quanh dự án có gì? *'+P.map.themes.reduce((n,th)=>n+(th.items.length||1),0)+' điểm kết nối*':(P.hook||'');if(hook){X.globalAlpha=ease((t-0.5)/0.6)*(P.map?1-ease((t-2.0)/0.5):1);X.font=FONT('800',26);fitFont(plain(hook),'800',P.map?22:26,12,W-2*M);richLine(hook,W/2,by+56);}
  X.restore();X.textAlign='left';
  if(!P.map&&first&&t>P.INTRO-0.45){X.globalAlpha=ease((t-(P.INTRO-0.45))/0.45);drawCover(first.m,0,first.k);X.globalAlpha=1;}
 }

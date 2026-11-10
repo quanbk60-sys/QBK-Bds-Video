@@ -10,7 +10,7 @@ tải ảnh/video, thêm kịch bản (không bắt buộc), bấm **Hoàn tất
 **https://claude.ai/artifact/UMaA2yMyDeAEbZT5R5bgZr**: mở trên điện thoại hoặc máy tính, giống QBK Studio.
 - Agent AI dùng Claude của tài khoản đang mở (lần đầu claude.ai hỏi cho phép).
 - Video ghi MP4 ngay trên trang (Chrome, Safari; trình duyệt không hỗ trợ thì WebM), nhạc nền trộn lúc ghi, bấm Tải video để lưu.
-- Cảnh bản đồ vệ tinh tự động không chạy trên claude.ai (trang không được gọi máy chủ bản đồ); dùng bản chạy trên máy bên dưới.
+- Cảnh bản đồ vệ tinh: nhập tọa độ là app gửi việc cho tác vụ đám mây "QBK BĐS Video: dựng cảnh bản đồ" (giống Đoàn phim của QBK Studio). Tác vụ chạy `worker/render-map.mjs` (tìm hạ tầng, tải ảnh vệ tinh, quay video bản đồ), tải video lên app qua db `mapJobs/<id>`, app ghép vào video. Mất khoảng 2–5 phút.
 
 Đăng lại sau khi sửa: `node scripts/build-artifact.mjs` rồi đăng `dist/artifact/index.html` (kèm `map-engine.js`) lên cùng link.
 
