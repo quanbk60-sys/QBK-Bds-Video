@@ -6,7 +6,7 @@
 <title>QBK BĐS Video</title>
 <style>
 :root{--bg:#0b0f1a;--panel:#121829;--panel2:#182036;--line:#26304a;--txt:#e6ebf5;--mut:#8d98b3;
---gold:#ffc247;--blue:#5fa8ff;--ruby:#ff5d73;--ok:#3ddc97;--warn:#ffb020;--r:14px}
+--gold:#ffc247;--blue:#5fa8ff;--ruby:#ff5d73;--ok:#3ddc97;--warn:#ffb020;--cyan:#3dffe0;--r:14px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 "Segoe UI","Helvetica Neue",Arial,sans-serif}
 header{display:flex;align-items:center;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line);background:#0d1322;position:sticky;top:0;z-index:5}
@@ -20,7 +20,7 @@ main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 340px;gap
 @media(max-width:760px){main{grid-template-columns:1fr;padding:16px}.steps{display:none}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:18px}
 .card h2{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:8px}
-.card h2 .n{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#1a1200;display:grid;place-items:center;font-size:12px}
+.card h2 .n{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#1a1200;display:grid;place-items:center;font-size:12px;flex:none}
 .sub{color:var(--mut);font-size:12px;margin:0 0 12px}
 .opt{font-size:11px;color:var(--mut);border:1px solid var(--line);padding:1px 7px;border-radius:999px;font-weight:400}
 label{display:block;font-size:12px;color:var(--mut);margin:8px 0 4px}
@@ -31,19 +31,22 @@ input:focus,textarea:focus,select:focus{outline:2px solid #ffc24766;border-color
 .drop{border:2px dashed #34405f;border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:.15s;background:#0f1525}
 .drop:hover,.drop.over{border-color:var(--gold);background:#1a1a14}
 .drop big{display:block;font-size:28px}
-.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:12px}
-.th{position:relative;aspect-ratio:9/12;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:12px}
+.th{position:relative;aspect-ratio:9/13;border-radius:10px;overflow:hidden;background:#000;border:1px solid var(--line)}
 .th img,.th video{width:100%;height:100%;object-fit:cover;display:block}
 .th .tag{position:absolute;left:5px;top:5px;font-size:10px;background:#000a;padding:1px 6px;border-radius:6px}
 .th .ix{position:absolute;right:5px;top:5px;font-size:10px;background:var(--gold);color:#1a1200;padding:1px 6px;border-radius:6px;font-weight:700}
+.th .pinb{position:absolute;left:5px;top:26px;font-size:10px;background:#0e3b37;color:var(--cyan);padding:1px 6px;border-radius:6px}
+.th .edit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#ffc247;color:#2a1a00;border:0;border-radius:999px;padding:5px 10px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 4px 14px #0008}
 .th .ctl{position:absolute;inset:auto 0 0 0;display:flex;justify-content:space-between;background:linear-gradient(transparent,#000c);padding:12px 4px 4px}
-.th button{background:#0008;border:0;color:#fff;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:12px}
+.th .ctl button{background:#0008;border:0;color:#fff;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:12px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.chip{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:5px 10px;border-radius:999px;cursor:pointer;font-size:12px}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:5px 10px;border-radius:999px;cursor:pointer;font-size:12px;user-select:none}
 .chip.on{border-color:var(--gold);color:var(--gold)}
 .btn{border:0;border-radius:12px;padding:12px 16px;font:inherit;font-weight:700;cursor:pointer}
 .btn.pri{background:linear-gradient(180deg,#ffd94f,#d9a31c);color:#2a1a00;width:100%;font-size:15px;box-shadow:0 6px 20px #d9a31c33}
 .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+.btn.sm{padding:7px 10px;font-size:12px;border-radius:9px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .agents{display:flex;flex-direction:column;gap:8px}
 .ag{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
@@ -67,6 +70,19 @@ input:focus,textarea:focus,select:focus{outline:2px solid #ffc24766;border-color
 .qa{font-size:12px;margin:6px 0 0;padding-left:18px}.qa li{margin:2px 0}
 .qa .pass{color:var(--ok)}.qa .fail{color:var(--warn)}
 details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
+/* editor */
+#ed{position:fixed;inset:0;background:#05070dee;z-index:20;display:none;align-items:center;justify-content:center;padding:16px}
+#ed.open{display:flex}
+.edbox{display:flex;gap:16px;max-height:100%;width:min(1000px,100%)}
+@media(max-width:760px){.edbox{flex-direction:column;overflow:auto}}
+.edcv{height:min(86vh,900px);aspect-ratio:9/16;background:#000;border-radius:14px;cursor:crosshair;flex:none;max-width:100%}
+.edside{flex:1;min-width:260px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;overflow:auto;max-height:86vh}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tool{border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:8px;border-radius:10px;cursor:pointer;font-size:12px;text-align:left}
+.tool.on{border-color:var(--gold);color:var(--gold);background:#2a2412}
+.hint{font-size:12px;color:var(--cyan);background:#0b2421;border:1px solid #1d4a44;border-radius:10px;padding:8px 10px;margin:10px 0}
+.items{font-size:12px;color:var(--mut);margin:8px 0;padding-left:18px;max-height:140px;overflow:auto}
+.seg{display:flex;gap:6px}.seg .chip{flex:1;text-align:center}
 </style>
 </head>
 <body>
@@ -77,11 +93,10 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
   </div>
 </header>
 <main>
-  <!-- COL 1: upload + info -->
   <section>
     <div class="card">
       <h2><span class="n">1</span>Tải ảnh, video lên</h2>
-      <p class="sub">Ảnh phối cảnh, ảnh drone, nội thất, tiện ích hoặc clip quay thực tế. Kéo để thả, sắp xếp thứ tự cảnh bằng mũi tên.</p>
+      <p class="sub">Ảnh vệ tinh, ảnh drone, phối cảnh, tiện ích hoặc clip quay thực tế. Bấm <b>✎ Ghim</b> trên từng ảnh để cắm ghim, kẻ đường neon, vẽ lô đất, gắn thẻ ảnh tiện ích.</p>
       <div class="drop" id="drop"><big>⬆</big><b>Kéo thả hoặc bấm để chọn file</b><div class="sub" style="margin:4px 0 0">JPG, PNG, WEBP, MP4, MOV, WEBM</div></div>
       <input type="file" id="file" accept="image/*,video/*" multiple hidden>
       <div class="thumbs" id="thumbs"></div>
@@ -97,40 +112,40 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
         <div><label>Hotline / ghi chú cuối</label><input id="pNote" placeholder="0909 xxx xxx"></div>
       </div>
       <details>
-        <summary>Cảnh bản đồ vị trí (không bắt buộc) — agent Bản đồ</summary>
+        <summary>Bản đồ hạ tầng tự động (không bắt buộc) — agent Bản đồ</summary>
         <div class="row">
-          <div><label>Vĩ độ (lat)</label><input id="pLat" placeholder="10.8705"></div>
-          <div><label>Kinh độ (lon)</label><input id="pLon" placeholder="106.7380"></div>
+          <div><label>Vĩ độ (lat)</label><input id="pLat" placeholder="21.0168"></div>
+          <div><label>Kinh độ (lon)</label><input id="pLon" placeholder="105.7810"></div>
         </div>
-        <label>Tiện ích lân cận (mỗi dòng: loại | tên)</label>
-        <textarea id="pPois" style="min-height:80px" placeholder="Y TẾ | BV Hoàn Mỹ Thủ Đức&#10;MUA SẮM | Vincom Plaza Thủ Đức&#10;KẾT NỐI | Sân bay Tân Sơn Nhất"></textarea>
-        <p class="note">Cần tọa độ thật, app không tự bịa vị trí. Cảnh bản đồ vệ tinh dùng skill map-location-video, chạy ở backend (giai đoạn 2).</p>
+        <label>Tiện ích muốn nhắc (không bắt buộc, mỗi dòng: loại | tên)</label>
+        <textarea id="pPois" style="min-height:70px" placeholder="KẾT NỐI | Vành đai 3&#10;METRO | Ga Phùng Khoang&#10;MUA SẮM | AEON Mall Hà Đông"></textarea>
+        <p class="note">Chỉ cần tọa độ thật: agent tự tìm đại lộ, vành đai, metro, cầu, sân bay, TTTM quanh dự án và chia cảnh theo chủ đề (skill bản đồ hạ tầng). Cảnh này chạy ở backend (giai đoạn 2).</p>
       </details>
     </div>
   </section>
 
-  <!-- COL 2: script + finish + agents -->
   <section>
     <div class="card">
       <h2><span class="n">2</span>Kịch bản <span class="opt">không bắt buộc</span></h2>
-      <p class="sub">Mỗi dòng là chữ hiện trên một cảnh. Bỏ trống thì agent Biên kịch tự viết theo phong cách đã chọn.</p>
+      <p class="sub">Mỗi dòng là chữ của một cảnh. Đặt chữ trong <b>*dấu sao*</b> để tô vàng. Bỏ trống thì agent Biên kịch tự viết.</p>
       <div class="chips" id="tone">
         <span class="chip on" data-v="sang">Sang trọng</span><span class="chip" data-v="dt">Đầu tư</span><span class="chip" data-v="gd">Gia đình</span><span class="chip" data-v="tt">TikTok bắt trend</span>
       </div>
-      <textarea id="script" placeholder="Ngay cửa nhà là trung tâm&#10;5 phút tới Vincom Thủ Đức&#10;Hồ bơi tràn bờ tầng thượng&#10;Sổ hồng riêng từng căn"></textarea>
+      <textarea id="script" placeholder="Ngay cửa nhà là *trung tâm*&#10;5 phút tới *Vincom* Thủ Đức&#10;Hồ bơi tràn bờ tầng thượng&#10;Sổ hồng riêng từng căn"></textarea>
+      <label>Kiểu chữ trên cảnh</label>
+      <div class="seg" id="capStyle"><span class="chip on" data-v="top">Tiêu đề trên (kiểu TikTok)</span><span class="chip" data-v="card">Thẻ dưới</span></div>
       <div class="chips"><span class="chip" id="btnSample">Dùng kịch bản mẫu</span><span class="chip" id="btnClear">Xóa</span></div>
     </div>
     <button class="btn pri" id="btnGo" disabled>✔ Hoàn tất &amp; tạo video</button>
     <p class="note" id="goHint" style="text-align:center">Tải lên ít nhất 1 ảnh hoặc video để bắt đầu.</p>
     <div class="card" style="margin-top:14px">
       <h2><span class="n">3</span>Đội agent làm việc</h2>
-      <p class="sub">6 agent: Điều phối giao việc, ba agent giữa chạy song song, Dựng hình xuất video, Kiểm duyệt rà lỗi.</p>
+      <p class="sub">7 agent: Điều phối giao việc, bốn agent giữa chạy song song, Dựng hình xuất video, Kiểm duyệt rà lỗi.</p>
       <div class="agents" id="agents"></div>
       <div class="log" id="log"><span class="a">[hệ thống]</span> Sẵn sàng.</div>
     </div>
   </section>
 
-  <!-- COL 3: preview + export -->
   <section class="col3">
     <div class="card">
       <h2>Xem trước 9:16</h2>
@@ -153,6 +168,36 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
   </section>
 </main>
 
+<!-- EDITOR: ghim & kẻ đường (skill tiện ích trên ảnh vệ tinh + skill kẻ đường ảnh drone) -->
+<div id="ed">
+  <div class="edbox">
+    <canvas class="edcv" id="edcv" width="576" height="1024"></canvas>
+    <div class="edside">
+      <h2 style="margin:0 0 4px;font-size:15px">Ghim &amp; kẻ đường · cảnh <span id="edIx"></span></h2>
+      <label>Kiểu ảnh</label>
+      <div class="seg" id="edStyle"><span class="chip" data-v="top">Vệ tinh nhìn thẳng</span><span class="chip" data-v="drone">Drone phối cảnh</span></div>
+      <label>Công cụ</label>
+      <div class="tools" id="tools">
+        <button class="tool" data-t="main">🏠 Ghim dự án</button>
+        <button class="tool" data-t="poi">📍 Ghim tiện ích</button>
+        <button class="tool" data-t="road">〰 Kẻ đường</button>
+        <button class="tool" data-t="plot">▱ Lô đất 3D</button>
+        <button class="tool" data-t="card">🖼 Thẻ ảnh</button>
+        <button class="tool" data-t="ring">◎ Vòng bán kính</button>
+        <button class="tool" data-t="text">Aa Tên khu vực</button>
+      </div>
+      <div class="hint" id="edHint">Chọn một công cụ rồi bấm lên ảnh.</div>
+      <div id="fLabel"><label>Nhãn / tên</label><input id="edLabel" placeholder="VD: CĂN NHÀ"></div>
+      <div id="fIcon"><label>Loại tiện ích</label><select id="edIcon"></select></div>
+      <div id="fDims" class="row"><div><label>Dài (m)</label><input id="edLen" value="20"></div><div><label>Rộng (m)</label><input id="edWid" value="10"></div></div>
+      <div id="fPhoto"><label>Ảnh thẻ</label><input type="file" id="edPhoto" accept="image/*"></div>
+      <div class="chips" style="margin-top:10px"><button class="btn sec sm" id="edDone1">✔ Kết thúc đường</button><button class="btn sec sm" id="edUndo">↶ Hoàn tác</button><button class="btn sec sm" id="edClear">Xóa hết</button></div>
+      <ol class="items" id="edItems"></ol>
+      <button class="btn pri" id="edClose">Xong</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
@@ -160,15 +205,20 @@ const W=576,H=1024,FPS=30,M=36,CARD_B=H-84;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const ease=u=>{u=clamp(u);return u*u*(3-2*u);};
+const back=u=>{u=clamp(u)-1;return 1+2.70158*u*u*u+1.70158*u*u;};
+const lerp=(a,b,u)=>a+(b-a)*u;
 const FONT=(w,s)=>`${w} ${s}px "Segoe UI","Helvetica Neue",Arial,sans-serif`;
-const S={media:[],tone:'sang',busy:false,blob:null,url:null,plan:null,stop:false};
+const S={media:[],tone:'sang',cap:'top',busy:false,blob:null,url:null,stop:false};
+let X; // active 2D context (main canvas or editor canvas)
+let RECTS=[];
 
 /* ---------- AGENTS ---------- */
 const AGENTS=[
  {id:'orc',ic:'🧭',nm:'Điều phối',ds:'Nhận job, chia việc, gộp kết quả'},
- {id:'med',ic:'🖼',nm:'Phân tích media',ds:'Phân loại ảnh/video, chọn cảnh, thứ tự'},
- {id:'wri',ic:'✍',nm:'Biên kịch',ds:'Hook 3s, tiêu đề từng cảnh, CTA'},
- {id:'map',ic:'🗺',nm:'Bản đồ & vị trí',ds:'Skill map-location-video (Esri, OSRM)'},
+ {id:'med',ic:'🖼',nm:'Phân tích media',ds:'Phân loại ảnh vệ tinh / drone / phối cảnh, chọn cảnh'},
+ {id:'wri',ic:'✍',nm:'Biên kịch',ds:'Hook 3s, tiêu đề từng cảnh, chữ tô vàng, CTA'},
+ {id:'map',ic:'🗺',nm:'Bản đồ hạ tầng',ds:'Tự nhận ra metro, vành đai, cầu, sân bay (Esri, OSRM)'},
+ {id:'ovl',ic:'📍',nm:'Đồ họa ghim & tuyến',ds:'Ghim, đường neon, lô đất 3D, thẻ ảnh, vòng km'},
  {id:'cmp',ic:'🎬',nm:'Dựng hình & xuất',ds:'Ken Burns, chữ, chuyển cảnh, ghi video'},
  {id:'qa', ic:'🛡',nm:'Kiểm duyệt (QA)',ds:'Vùng an toàn, khung trễ, dung lượng'}];
 const agBox=$('#agents');
@@ -178,20 +228,22 @@ const LBL={run:'Đang chạy',ok:'Xong',skip:'Bỏ qua',err:'Lỗi',idle:'Chờ'
 function ag(id,st,p){const d=$('#ag-'+id);d.className='ag '+(st==='idle'?'':st);d.querySelector('.stt').textContent=LBL[st];if(p!=null)d.querySelector('.bar i').style.width=(p*100)+'%';}
 function log(who,msg){const l=$('#log');l.innerHTML+=`<br><span class="a">[${who}]</span> ${msg}`;l.scrollTop=l.scrollHeight;}
 function steps(n){[...document.querySelectorAll('.step')].forEach((s,i)=>s.className='step'+(i<n?' done':i===n?' on':''));}
+function seg(sel,cb){document.querySelectorAll(sel+' .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll(sel+' .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');cb(c.dataset.v);});}
 
 /* ---------- UPLOAD ---------- */
 const drop=$('#drop'),fileIn=$('#file');
 drop.onclick=()=>fileIn.click();
-fileIn.onchange=e=>{addFiles(e.target.files);fileIn.value='';};
+fileIn.onchange=e=>{const l=[...e.target.files];fileIn.value='';addFiles(l);};
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
-drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+drop.addEventListener('drop',e=>addFiles([...e.dataTransfer.files]));
 let uid=0;
+async function loadImg(url){const i=new Image();i.src=url;await i.decode().catch(()=>{});return i;}
 async function addFiles(list){
  for(const f of [...list]){
   const type=f.type.startsWith('video')?'video':f.type.startsWith('image')?'image':null;if(!type)continue;
-  const url=URL.createObjectURL(f);const it={id:++uid,type,name:f.name,url,size:f.size};
-  if(type==='image'){it.el=new Image();it.el.src=url;await it.el.decode().catch(()=>{});it.w=it.el.naturalWidth;it.h=it.el.naturalHeight;}
+  const url=URL.createObjectURL(f);const it={id:++uid,type,name:f.name,url,size:f.size,ov:{style:type==='video'?'drone':'top',items:[]}};
+  if(type==='image'){it.el=await loadImg(url);it.w=it.el.naturalWidth;it.h=it.el.naturalHeight;}
   else{const v=document.createElement('video');v.src=url;v.muted=true;v.playsInline=true;v.preload='auto';
    await new Promise(r=>{v.onloadeddata=r;v.onerror=r;});it.el=v;it.w=v.videoWidth;it.h=v.videoHeight;it.dur=v.duration||4;}
   S.media.push(it);
@@ -201,10 +253,13 @@ async function addFiles(list){
 function renderThumbs(){
  const box=$('#thumbs');box.innerHTML='';
  S.media.forEach((m,i)=>{const d=document.createElement('div');d.className='th';
+  const n=m.ov.items.length;
   d.innerHTML=(m.type==='image'?`<img src="${m.url}">`:`<video src="${m.url}" muted></video>`)+
   `<span class="tag">${m.type==='image'?'Ảnh':'Video '+Math.round(m.dur)+'s'}</span><span class="ix">${i+1}</span>
+   ${n?`<span class="pinb">📍 ${n} đồ họa</span>`:''}<button class="edit">✎ Ghim</button>
    <div class="ctl"><button data-a="l">◀</button><button data-a="x">✕</button><button data-a="r">▶</button></div>`;
-  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{const a=b.dataset.a;
+  d.querySelector('.edit').onclick=()=>openEditor(i);
+  d.querySelectorAll('.ctl button').forEach(b=>b.onclick=()=>{const a=b.dataset.a;
    if(a==='x'){S.media.splice(i,1);}else{const j=a==='l'?i-1:i+1;if(j<0||j>=S.media.length)return;[S.media[i],S.media[j]]=[S.media[j],S.media[i]];}
    renderThumbs();});
   box.appendChild(d);});
@@ -214,98 +269,229 @@ function renderThumbs(){
 }
 
 /* ---------- SCRIPT ---------- */
-document.querySelectorAll('#tone .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#tone .chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');S.tone=c.dataset.v;});
+seg('#tone',v=>S.tone=v);seg('#capStyle',v=>S.cap=v);
 const TONES={
- sang:['Không gian sống đẳng cấp','Tầm nhìn khoáng đạt mỗi sáng','Tiện ích chuẩn resort','Hoàn thiện tinh tế từng chi tiết','Vị trí trung tâm kết nối','Sở hữu ngay hôm nay'],
- dt:['Vị trí đón đầu hạ tầng','Tiềm năng tăng giá rõ ràng','Pháp lý minh bạch','Khai thác cho thuê ngay','Thanh toán linh hoạt','Số lượng có hạn'],
- gd:['Tổ ấm cho cả gia đình','Trường học ngay cạnh nhà','Công viên xanh cho con chơi','An ninh 24/7','Chợ, siêu thị vài phút','Về nhà là bình yên'],
- tt:['Căn này có gì mà hot vậy?','Nhìn view này đi!','Tiện ích xịn sò','Đi đâu cũng gần','Giá chỉ từ ... tỷ','Comment "INFO" nhận giá']};
+ sang:['Không gian sống *đẳng cấp*','Tầm nhìn *khoáng đạt* mỗi sáng','Tiện ích *chuẩn resort*','Hoàn thiện *tinh tế* từng chi tiết','Vị trí *trung tâm* kết nối','Sở hữu *ngay hôm nay*'],
+ dt:['Vị trí *đón đầu* hạ tầng','Tiềm năng *tăng giá* rõ ràng','Pháp lý *minh bạch*','Khai thác *cho thuê* ngay','Thanh toán *linh hoạt*','Số lượng *có hạn*'],
+ gd:['Tổ ấm cho *cả gia đình*','*Trường học* ngay cạnh nhà','*Công viên xanh* cho con chơi','An ninh *24/7*','Chợ, siêu thị *vài phút*','Về nhà là *bình yên*'],
+ tt:['Căn này có gì mà *hot* vậy?','Nhìn *view* này đi!','Tiện ích *xịn sò*','Đi đâu cũng *gần*','Giá chỉ từ *... tỷ*','Comment *"INFO"* nhận giá']};
 $('#btnSample').onclick=()=>{$('#script').value=TONES[S.tone].join('\n');};
 $('#btnClear').onclick=()=>{$('#script').value='';};
+const plain=s=>s.replace(/\*/g,'');
 
 /* ---------- PLAN ---------- */
 function info(){return{name:$('#pName').value.trim()||'DỰ ÁN CỦA BẠN',area:$('#pArea').value.trim(),cta:$('#pCta').value.trim()||'LIÊN HỆ NHẬN THÔNG TIN',
  note:$('#pNote').value.trim(),lat:parseFloat($('#pLat').value),lon:parseFloat($('#pLon').value),
  pois:$('#pPois').value.split('\n').map(s=>s.split('|').map(x=>x.trim())).filter(a=>a.length===2&&a[1])};}
+// overlay timeline: items appear one after another like the CapCut tutorials
+function ovTimes(items){let t=0.35;return items.map(it=>{const d={road:1.3,plot:1.1,card:1.1,ring:1.0}[it.t]||0.6;const st=t;t+=it.t==='road'?0.9:it.t==='plot'||it.t==='card'?0.75:0.5;return{st,d};});}
+function sceneDur(m){const base=m.type==='video'?clamp(m.dur||4,2.5,6):3.4;const n=m.ov.items.length;if(!n)return base;const tt=ovTimes(m.ov.items);const last=tt[n-1];return Math.max(base,last.st+last.d+1.4);}
 function buildPlan(){
  const I=info();let lines=$('#script').value.split('\n').map(s=>s.trim()).filter(Boolean);const auto=!lines.length;
  if(auto)lines=TONES[S.tone];
  const INTRO=2.6,OUT=3.2;let t=INTRO;const scenes=[];
- S.media.forEach((m,i)=>{const d=m.type==='video'?clamp(m.dur||4,2.5,6):3.4;scenes.push({m,t0:t,d,cap:lines[i%lines.length],k:i});t+=d;});
- return{I,scenes,INTRO,OUT0:t,T:t+OUT,auto,lines};
+ S.media.forEach((m,i)=>{const d=sceneDur(m);scenes.push({m,t0:t,d,cap:lines[i%lines.length],k:i});t+=d;});
+ return{I,scenes,INTRO,OUT0:t,T:t+OUT,auto,lines,cap:S.cap};
 }
 
-/* ---------- RENDER ---------- */
-const cv=$('#cv'),ctx=cv.getContext('2d');
-function fitFont(text,wt,start,min,maxW){let s=start;ctx.font=FONT(wt,s);while(ctx.measureText(text).width>maxW&&s>min){s--;ctx.font=FONT(wt,s);}return s;}
-let RECTS=[];
-function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
-function drawCover(m,u,k,alpha=1){
- const el=m.el;const iw=m.w||el.videoWidth||el.naturalWidth,ih=m.h||el.videoHeight||el.naturalHeight;if(!iw)return;
- const base=Math.max(W/iw,H/ih);const z=m.type==='image'?1.06+0.12*u:1.0+0.04*u;
- const dir=k%4;const px=[-1,1,0,0][dir]*0.04*W*(u-.5),py=[0,0,-1,1][dir]*0.04*H*(u-.5);
- const w=iw*base*z,h=ih*base*z;ctx.globalAlpha=alpha;ctx.drawImage(el,(W-w)/2+px,(H-h)/2+py,w,h);ctx.globalAlpha=1;
+/* ---------- DRAW HELPERS ---------- */
+function fitFont(text,wt,start,min,maxW){let s=start;X.font=FONT(wt,s);while(X.measureText(text).width>maxW&&s>min){s--;X.font=FONT(wt,s);}return s;}
+function rr(x,y,w,h,r){X.beginPath();X.roundRect(x,y,w,h,r);}
+function goldGrad(y0,y1){const g=X.createLinearGradient(0,y0,0,y1);['#fff7c9','#ffd94f','#d9a31c','#85560a'].forEach((c,i)=>g.addColorStop(i/3,c));return g;}
+function wrap(t,maxW){const w=t.split(' ');const out=[];let cur='';for(const x of w){const n=cur?cur+' '+x:x;if(X.measureText(plain(n)).width>maxW&&cur){out.push(cur);cur=x;}else cur=n;}if(cur)out.push(cur);return out;}
+// cover transform; overlays live in image-normalised coords so they move with Ken Burns
+function coverXf(m,u,k){const iw=m.w||1,ih=m.h||1;const base=Math.max(W/iw,H/ih);const calm=m.ov.items.length>0;
+ const z=calm?1.0+0.05*u:(m.type==='image'?1.06+0.12*u:1.0+0.04*u);
+ const dir=k%4;const amp=calm?0:0.04;const px=[-1,1,0,0][dir]*amp*W*(u-.5),py=[0,0,-1,1][dir]*amp*H*(u-.5);
+ const w=iw*base*z,h=ih*base*z;return{x0:(W-w)/2+px,y0:(H-h)/2+py,w,h};}
+const P2S=(xf,p)=>[xf.x0+p[0]*xf.w,xf.y0+p[1]*xf.h];
+const S2P=(xf,x,y)=>[(x-xf.x0)/xf.w,(y-xf.y0)/xf.h];
+function drawCover(m,u,k,alpha=1){const xf=coverXf(m,u,k);if(!m.w)return xf;X.globalAlpha=alpha;X.drawImage(m.el,xf.x0,xf.y0,xf.w,xf.h);X.globalAlpha=1;return xf;}
+
+/* ---------- OVERLAY GRAPHICS (learned from the 3 sample videos) ---------- */
+const ICONS=[['school','Trường học'],['cart','Siêu thị'],['market','Chợ'],['hospital','Bệnh viện'],['food','Nhà hàng'],['park','Công viên'],['hotel','Khách sạn'],['metro','Ga metro'],['dot','Khác']];
+function glyph(type,s){ // drawn around (0,0), dark ink
+ X.save();X.scale(s,s);X.fillStyle=X.strokeStyle='#2a1a00';X.lineWidth=1.8;X.lineCap='round';X.lineJoin='round';
+ switch(type){
+ case 'home':X.beginPath();X.moveTo(-6,0);X.lineTo(0,-6);X.lineTo(6,0);X.stroke();X.fillRect(-4,0,8,6);X.fillStyle='#fff';X.fillRect(-1.3,2,2.6,4);break;
+ case 'school':X.fillRect(-6,-4,5.4,9);X.fillRect(0.6,-4,5.4,9);X.fillStyle='#fff';X.fillRect(-0.6,-4,1.2,9);break;
+ case 'cart':X.beginPath();X.moveTo(-7,-5);X.lineTo(-4,-5);X.lineTo(-2,3);X.lineTo(5,3);X.lineTo(6.5,-2.5);X.lineTo(-3,-2.5);X.stroke();X.beginPath();X.arc(-1,5.6,1.4,0,7);X.arc(4,5.6,1.4,0,7);X.fill();break;
+ case 'market':X.fillRect(-6.5,-5,13,3.5);X.fillRect(-5,-1,1.8,6.5);X.fillRect(3.2,-1,1.8,6.5);X.fillRect(-6.5,4.5,13,1.6);break;
+ case 'hospital':X.fillRect(-1.8,-6,3.6,12);X.fillRect(-6,-1.8,12,3.6);break;
+ case 'food':X.beginPath();X.moveTo(-5,-5);X.lineTo(5,5);X.moveTo(5,-5);X.lineTo(-5,5);X.lineWidth=2.4;X.stroke();break;
+ case 'park':X.beginPath();X.arc(0,-2,5,0,7);X.fill();X.fillRect(-1,2,2,5);break;
+ case 'hotel':X.font=FONT('900',12);X.textAlign='center';X.textBaseline='middle';X.fillText('H',0,0.5);break;
+ case 'metro':X.font=FONT('900',11);X.textAlign='center';X.textBaseline='middle';X.fillText('M',0,0.5);break;
+ default:X.beginPath();X.arc(0,0,3.2,0,7);X.fill();}
+ X.restore();}
+function pin(x,y,sc,main,icon,drone){ // teardrop pin, tip at (x,y)
+ X.save();X.translate(x,y);X.scale(sc,sc);
+ X.beginPath();X.ellipse(0,1,drone?13:10,drone?4.5:3.5,0,0,7);X.fillStyle='rgba(0,0,0,.45)';X.fill();
+ if(drone){X.beginPath();X.ellipse(0,1,17,6,0,0,7);X.strokeStyle='rgba(255,255,255,.55)';X.lineWidth=1.2;X.stroke();}
+ X.beginPath();X.moveTo(0,0);X.bezierCurveTo(-4,-8,-14,-14,-14,-24);X.arc(0,-24,14,Math.PI,0);X.bezierCurveTo(14,-14,4,-8,0,0);X.closePath();
+ const g=X.createLinearGradient(0,-38,0,0);(main?['#fff7c9','#ffd94f','#d9a31c','#85560a']:['#fffbd6','#ffec5c','#f2c400','#9a7b00']).forEach((c,i)=>g.addColorStop(i/3,c));
+ X.fillStyle=g;X.fill();X.lineWidth=1.6;X.strokeStyle='rgba(255,255,255,.9)';X.stroke();
+ X.beginPath();X.arc(0,-24,9.5,0,7);X.fillStyle='#fff';X.fill();
+ X.translate(0,-24);glyph(icon,0.95);X.restore();}
+function label(text,cx,y,color,size){ // stroked label kept inside safe margins
+ if(!text)return;X.save();const s=fitFont(text,'900',size,10,W-2*M);const tw=X.measureText(text).width;
+ const x=clamp(cx,M+tw/2,W-M-tw/2);X.textAlign='center';X.textBaseline='alphabetic';
+ X.lineWidth=4;X.strokeStyle='rgba(0,0,0,.75)';X.lineJoin='round';X.strokeText(text,x,y);X.fillStyle=color;X.fillText(text,x,y);
+ RECTS.push([x-tw/2,y-s,x+tw/2,y+3]);X.restore();}
+function polyLen(pts){let L=0;for(let i=1;i<pts.length;i++)L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return L;}
+function partial(pts,p){if(p>=1)return pts;const L=polyLen(pts)*p;const out=[pts[0]];let acc=0;
+ for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(acc+d>=L){const u=(L-acc)/(d||1);out.push([lerp(pts[i-1][0],pts[i][0],u),lerp(pts[i-1][1],pts[i][1],u)]);return out;}acc+=d;out.push(pts[i]);}return out;}
+function pointAt(pts,p){const q=partial(pts,p);return q[q.length-1];}
+function drawRoad(sp,p,name,drone,τ){
+ const q=partial(sp,ease(p));if(q.length<2)return;X.save();X.lineCap='round';X.lineJoin='round';
+ if(!drone){ // top-down: thick yellow glowing sweep + street name along it
+  X.shadowColor='#e9ff3a';X.shadowBlur=22;X.strokeStyle='rgba(225,255,60,.85)';X.lineWidth=11;X.beginPath();q.forEach((v,i)=>i?X.lineTo(v[0],v[1]):X.moveTo(v[0],v[1]));X.stroke();
+  X.shadowBlur=0;X.strokeStyle='#fbffd0';X.lineWidth=3.5;X.stroke();
+ }else{ // drone: cyan neon, wider near camera (perspective)
+  X.shadowColor='#3dffe0';X.shadowBlur=18;
+  for(let i=1;i<q.length;i++){const a=q[i-1],b=q[i];const w=3+13*clamp(((a[1]+b[1])/2-200)/(H-200));
+   X.strokeStyle='rgba(61,255,224,.8)';X.lineWidth=w;X.beginPath();X.moveTo(a[0],a[1]);X.lineTo(b[0],b[1]);X.stroke();
+   X.strokeStyle='rgba(225,255,250,.95)';X.lineWidth=Math.max(1.2,w*0.3);X.stroke();}
+  if(p>=1){const L=pointAt(sp,(τ*0.45)%1);X.shadowBlur=30;X.fillStyle='#e8fffb';X.beginPath();X.arc(L[0],L[1],4+6*clamp((L[1]-200)/(H-200)),0,7);X.fill();}
+ }
+ X.restore();
+ if(name&&!drone){const a=clamp((p-0.55)/0.35);if(a>0){ // name rotated along the longest segment
+  let bi=1,bl=0;for(let i=1;i<sp.length;i++){const l=Math.hypot(sp[i][0]-sp[i-1][0],sp[i][1]-sp[i-1][1]);if(l>bl){bl=l;bi=i;}}
+  const A=sp[bi-1],B=sp[bi];let ang=Math.atan2(B[1]-A[1],B[0]-A[0]);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;
+  const mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2;X.save();X.globalAlpha=a;X.translate(mx,my);X.rotate(ang);
+  const s=fitFont(name,'900',30,14,Math.max(80,bl*0.8));X.textAlign='center';X.textBaseline='middle';
+  X.lineWidth=5;X.strokeStyle='rgba(0,0,0,.7)';X.strokeText(name,0,-s*0.9);X.fillStyle=goldGrad(-s*1.4,-s*0.4);X.fillText(name,0,-s*0.9);X.restore();}}
+ if(name&&drone&&p>=1){const e=sp[sp.length-1];label(name,e[0],e[1]-10,'#d6fff8',15);}
 }
-function gradTop(){const g=ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(0,0,0,.65)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,260);
- const g2=ctx.createLinearGradient(0,H-360,0,H);g2.addColorStop(0,'rgba(0,0,0,0)');g2.addColorStop(1,'rgba(0,0,0,.7)');ctx.fillStyle=g2;ctx.fillRect(0,H-360,W,360);}
-function goldGrad(y0,y1){const g=ctx.createLinearGradient(0,y0,0,y1);['#fff7c9','#ffd94f','#d9a31c','#85560a'].forEach((c,i)=>g.addColorStop(i/3,c));return g;}
-function topBar(P,t){ // project chip + progress (y=64/82 like skill)
- const s=fitFont(P.I.name,'800',20,12,W-2*M-40);const tw=ctx.measureText(P.I.name).width;
- rr(M,44,tw+40,34,17);ctx.fillStyle='rgba(10,15,28,.72)';ctx.fill();ctx.strokeStyle='rgba(255,217,79,.7)';ctx.lineWidth=1.4;ctx.stroke();
- ctx.beginPath();ctx.arc(M+17,61,6,0,7);ctx.fillStyle=goldGrad(55,67);ctx.fill();
- ctx.fillStyle='#fff';ctx.textBaseline='middle';ctx.fillText(P.I.name,M+30,62);RECTS.push([M,44,M+tw+40,78]);
- ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(M,90,W-2*M,4);ctx.fillStyle='#ffc247';ctx.fillRect(M,90,(W-2*M)*clamp(t/P.T),4);
+function drawPlot(sp,p,it){
+ const e=ease(p);const hh=24*back(clamp((p-0.25)/0.6));const c=sp.reduce((a,v)=>[a[0]+v[0]/4,a[1]+v[1]/4],[0,0]);
+ X.save();X.globalAlpha=e;const top=sp.map(v=>[v[0],v[1]-hh]);
+ for(let i=0;i<4;i++){const a=sp[i],b=sp[(i+1)%4];X.beginPath();X.moveTo(a[0],a[1]);X.lineTo(b[0],b[1]);X.lineTo(top[(i+1)%4][0],top[(i+1)%4][1]);X.lineTo(top[i][0],top[i][1]);X.closePath();X.fillStyle='rgba(40,140,240,.35)';X.fill();}
+ X.beginPath();top.forEach((v,i)=>i?X.lineTo(v[0],v[1]):X.moveTo(v[0],v[1]));X.closePath();X.fillStyle='rgba(90,190,255,.55)';X.fill();
+ X.shadowColor='#7fd0ff';X.shadowBlur=14;X.strokeStyle='#c9ecff';X.lineWidth=2.2;X.stroke();X.shadowBlur=0;
+ const a2=clamp((p-0.6)/0.4);if(a2>0){X.globalAlpha=a2;const area=Math.round((+it.len||0)*(+it.wid||0));
+  X.font=FONT('900',24);X.textAlign='center';X.textBaseline='middle';X.lineWidth=4;X.strokeStyle='rgba(0,0,0,.6)';const t=area?area+'m²':'';X.strokeText(t,c[0],c[1]-hh);X.fillStyle='#fff';X.fillText(t,c[0],c[1]-hh);
+  [[0,1,it.len],[1,2,it.wid]].forEach(([i,j,v])=>{if(!v)return;const a=sp[i],b=sp[j];const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;let nx=mx-c[0],ny=my-c[1];const nl=Math.hypot(nx,ny)||1;nx=nx/nl*16;ny=ny/nl*16;
+   X.strokeStyle='#fff';X.lineWidth=1.6;X.beginPath();X.moveTo(a[0]+nx,a[1]+ny);X.lineTo(b[0]+nx,b[1]+ny);X.stroke();
+   [a,b].forEach(q=>{X.beginPath();X.moveTo(q[0]+nx*0.6,q[1]+ny*0.6);X.lineTo(q[0]+nx*1.4,q[1]+ny*1.4);X.stroke();});
+   let ang=Math.atan2(b[1]-a[1],b[0]-a[0]);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;
+   X.save();X.translate(mx+nx*2.1,my+ny*2.1);X.rotate(ang);X.font=FONT('800',16);X.lineWidth=3.5;X.strokeText(v+'m',0,0);X.fillStyle='#fff';X.fillText(v+'m',0,0);X.restore();});}
+ X.restore();}
+function drawCard(anchor,pos,p,it,drone){
+ const cw=104,chh=96,bh=24;const x=clamp(pos[0]-cw/2,M,W-M-cw),y=clamp(pos[1]-chh-bh,225,CARD_B-chh-bh);
+ const bx=x+cw/2,by=y+chh+bh;const lp=clamp(p/0.35);
+ X.save();X.strokeStyle=drone?'rgba(255,255,255,.9)':'#ffe14d';X.lineWidth=drone?1.5:2.2;if(!drone)X.setLineDash([7,6]);
+ X.beginPath();X.moveTo(anchor[0],anchor[1]);X.lineTo(lerp(anchor[0],bx,lp),lerp(anchor[1],by,lp));X.stroke();X.setLineDash([]);
+ X.fillStyle='#fff';X.beginPath();X.arc(anchor[0],anchor[1],3,0,7);X.fill();
+ const fp=clamp((p-0.35)/0.25);if(fp>0){X.globalAlpha=fp;X.strokeStyle='#fff';X.lineWidth=2;X.strokeRect(x,y,cw,chh+bh);
+  const ip=clamp((p-0.6)/0.4);X.fillStyle='rgba(10,15,28,.5)';X.fillRect(x,y,cw,chh);
+  if(ip>0){X.globalAlpha=ip;if(it.img&&it.img.naturalWidth){const im=it.img,s=Math.max(cw/im.naturalWidth,chh/im.naturalHeight);X.save();X.beginPath();X.rect(x,y,cw,chh);X.clip();X.drawImage(im,x+(cw-im.naturalWidth*s)/2,y+(chh-im.naturalHeight*s)/2,im.naturalWidth*s,im.naturalHeight*s);X.restore();}
+   else{X.fillStyle='#3a4a6e';X.fillRect(x,y,cw,chh);X.save();X.translate(x+cw/2,y+chh/2);X.fillStyle='#ffe14d';X.beginPath();X.arc(0,0,18,0,7);X.fill();glyph(it.icon||'dot',1.6);X.restore();}}
+  X.globalAlpha=fp;X.fillStyle='#1f6fe0';X.fillRect(x,y+chh,cw*clamp((p-0.45)/0.3),bh);
+  if(p>0.7){fitFont(it.label||'',  '800',13,9,cw-8);X.fillStyle='#fff';X.textAlign='center';X.textBaseline='middle';X.fillText(it.label||'',x+cw/2,y+chh+bh/2+1);}
+  RECTS.push([x,y,x+cw,y+chh+bh]);}
+ X.restore();}
+function drawRing(c,r,p,lbl){X.save();for(let k=0;k<2;k++){const e=ease((p-k*0.25)/0.75);if(e<=0)continue;X.globalAlpha=0.8*e;
+  X.strokeStyle='rgba(255,225,77,.85)';X.lineWidth=1.6;X.beginPath();X.arc(c[0],c[1],r*(k?0.55:1)*e,0,7);X.stroke();}
+ X.globalAlpha=1;X.fillStyle='rgba(255,225,77,.06)';X.beginPath();X.arc(c[0],c[1],r*ease(p),0,7);X.fill();
+ if(lbl&&p>0.7){X.globalAlpha=clamp((p-0.7)/0.3);X.restore();label(lbl,c[0],c[1]-r-6,'#ffe14d',14);return;}X.restore();}
+function drawText(pt,p,text){if(!text)return;X.save();const s=fitFont(text,'900',30,12,W-2*M);const tw=X.measureText(text).width;const x=clamp(pt[0],M+tw/2,W-M-tw/2);
+ X.beginPath();X.rect(x-tw/2-10,pt[1]-s-10,(tw+20)*ease(p),s+24);X.clip();X.textAlign='center';X.textBaseline='alphabetic';
+ X.shadowColor='#ffae35';X.shadowBlur=16;X.fillStyle='#fff6dd';X.fillText(text,x,pt[1]);X.shadowBlur=0;X.restore();RECTS.push([x-tw/2,pt[1]-s,x+tw/2,pt[1]+3]);}
+function drawOverlay(m,xf,τ,full){
+ const items=m.ov.items,drone=m.ov.style==='drone';const tt=ovTimes(items);
+ // draw order: rings, roads, plots, cards, text, pins on top
+ const order={ring:0,road:1,plot:2,text:3,card:4,poi:5,main:6};
+ items.map((it,i)=>[it,i]).sort((a,b)=>order[a[0].t]-order[b[0].t]).forEach(([it,i])=>{
+  const p=full?1:clamp((τ-tt[i].st)/tt[i].d);if(p<=0)return;
+  if(it.t==='road')drawRoad(it.pts.map(v=>P2S(xf,v)),p,it.label,drone,τ);
+  else if(it.t==='plot')drawPlot(it.pts.map(v=>P2S(xf,v)),p,it);
+  else if(it.t==='card')drawCard(P2S(xf,it.a),P2S(xf,it.p),p,it,drone);
+  else if(it.t==='ring'){const c=P2S(xf,it.p);drawRing(c,it.r*xf.w,p,it.label);}
+  else if(it.t==='text')drawText(P2S(xf,it.p),p,it.label);
+  else{const [x,y]=P2S(xf,it.p);const main=it.t==='main';const sc=(main?1.55:1.2)*(drone?1:0.95);
+   let yy=y,s=sc;if(main){yy=y-(1-back(p))*90;}else s=sc*back(p);
+   X.save();X.globalAlpha=clamp(p*3);
+   if(main&&p>=1){const ph=(τ*0.7)%1;X.strokeStyle=`rgba(255,217,79,${0.7*(1-ph)})`;X.lineWidth=2;X.beginPath();X.ellipse(x,y+1,8+28*ph,3+10*ph,0,0,7);X.stroke();}
+   pin(x,yy,s,main,main?'home':it.icon,drone);X.restore();
+   if(p>0.5)label(it.label||(main?'VỊ TRÍ':''),x,yy-44*s,main?'#ffd94f':'#ffec5c',main?17:15);}
+ });}
+
+/* ---------- SCENE TEXT ---------- */
+function topBar(P,t){
+ const s=fitFont(P.I.name,'800',20,12,W-2*M-40);const tw=X.measureText(P.I.name).width;
+ rr(M,44,tw+40,34,17);X.fillStyle='rgba(10,15,28,.72)';X.fill();X.strokeStyle='rgba(255,217,79,.7)';X.lineWidth=1.4;X.stroke();
+ X.beginPath();X.arc(M+17,61,6,0,7);X.fillStyle=goldGrad(55,67);X.fill();
+ X.fillStyle='#fff';X.textBaseline='middle';X.textAlign='left';X.fillText(P.I.name,M+30,62);RECTS.push([M,44,M+tw+40,78]);
+ X.fillStyle='rgba(255,255,255,.2)';X.fillRect(M,90,W-2*M,4);X.fillStyle='#ffc247';X.fillRect(M,90,(W-2*M)*clamp(t/P.T),4);
 }
-function caption(text,u,idx,total){
- const a=ease(u/0.12)*(1-ease((u-0.9)/0.1));if(a<=0)return;
- ctx.save();ctx.globalAlpha=a;const y=CARD_B-112-(1-ease(u/0.15))*24;
- rr(M,y,W-2*M,112,18);ctx.fillStyle='rgba(10,15,28,.78)';ctx.fill();ctx.strokeStyle='rgba(255,217,79,.55)';ctx.lineWidth=1.5;ctx.stroke();
- ctx.fillStyle=goldGrad(y+18,y+44);rr(M+18,y+18,74,24,12);ctx.fill();
- ctx.fillStyle='#2a1a00';ctx.font=FONT('800',12);ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(`CẢNH ${idx+1}/${total}`,M+55,y+30.5);ctx.textAlign='left';
- // wrap to 2 lines
- const maxW=W-2*M-36;let s=30;let lines;
- for(;s>=18;s--){ctx.font=FONT('800',s);lines=wrap(text,maxW);if(lines.length<=2)break;}
- ctx.fillStyle='#fff';lines.slice(0,2).forEach((l,i)=>ctx.fillText(l,M+18,y+64+i*(s+4)-(lines.length>1?s/2-2:0)));
- RECTS.push([M,y,W-M,y+112]);ctx.restore();
-}
-function wrap(t,maxW){const w=t.split(' ');const out=[];let cur='';for(const x of w){const n=cur?cur+' '+x:x;if(ctx.measureText(n).width>maxW&&cur){out.push(cur);cur=x;}else cur=n;}if(cur)out.push(cur);return out;}
+function richLine(line,cx,y){ // *word* -> yellow highlight
+ const parts=line.split('*');let tw=0;parts.forEach(p=>tw+=X.measureText(p).width);let x=cx-tw/2;
+ parts.forEach((p,i)=>{X.textAlign='left';X.lineWidth=5;X.strokeStyle='rgba(0,0,0,.8)';X.strokeText(p,x,y);X.fillStyle=i%2?'#ffe14d':'#fff';X.fillText(p,x,y);x+=X.measureText(p).width;});}
+function titleTop(text,u){
+ const a=ease(u/0.1)*(1-ease((u-0.93)/0.07));if(a<=0)return;X.save();X.globalAlpha=a;X.lineJoin='round';
+ const maxW=W-2*M;let s=36,lines;for(;s>=20;s--){X.font=FONT('900',s);lines=wrap(text,maxW);if(lines.length<=2&&lines.every(l=>X.measureText(plain(l)).width<=maxW))break;}
+ // re-balance '*' across wrapped lines
+ let open=false;lines=lines.slice(0,2).map(l=>{let o=(open?'*':'')+l;const n=(l.match(/\*/g)||[]).length;if(n%2)open=!open;if(open)o+='*';return o;});
+ X.textBaseline='middle';const y0=150+(1-ease(u/0.12))*-14;
+ lines.forEach((l,i)=>richLine(l,W/2,y0+i*(s+8)));
+ lines.forEach((l,i)=>{const w=X.measureText(plain(l)).width;RECTS.push([W/2-w/2,y0+i*(s+8)-s/2,W/2+w/2,y0+i*(s+8)+s/2]);});
+ X.restore();}
+function captionCard(text,u,idx,total){
+ text=plain(text);const a=ease(u/0.12)*(1-ease((u-0.9)/0.1));if(a<=0)return;
+ X.save();X.globalAlpha=a;const y=CARD_B-112-(1-ease(u/0.15))*24;
+ rr(M,y,W-2*M,112,18);X.fillStyle='rgba(10,15,28,.78)';X.fill();X.strokeStyle='rgba(255,217,79,.55)';X.lineWidth=1.5;X.stroke();
+ X.fillStyle=goldGrad(y+18,y+44);rr(M+18,y+18,74,24,12);X.fill();
+ X.fillStyle='#2a1a00';X.font=FONT('800',12);X.textBaseline='middle';X.textAlign='center';X.fillText(`CẢNH ${idx+1}/${total}`,M+55,y+30.5);X.textAlign='left';
+ const maxW=W-2*M-36;let s=30;let lines;for(;s>=18;s--){X.font=FONT('800',s);lines=wrap(text,maxW);if(lines.length<=2)break;}
+ X.fillStyle='#fff';lines.slice(0,2).forEach((l,i)=>X.fillText(l,M+18,y+64+i*(s+4)-(lines.length>1?s/2-2:0)));
+ RECTS.push([M,y,W-M,y+112]);X.restore();}
+function gradTop(){const g=X.createLinearGradient(0,0,0,300);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=g;X.fillRect(0,0,W,300);
+ const g2=X.createLinearGradient(0,H-300,0,H);g2.addColorStop(0,'rgba(0,0,0,0)');g2.addColorStop(1,'rgba(0,0,0,.6)');X.fillStyle=g2;X.fillRect(0,H-300,W,300);}
 function intro(P,t){
- const first=P.scenes[0];if(first){drawCover(first.m,t/P.INTRO*0.3,1);}
- ctx.fillStyle=`rgba(5,8,16,${0.55-0.25*ease((t-1.8)/0.8)})`;ctx.fillRect(0,0,W,H);
- const a=ease(t/0.6);ctx.save();ctx.globalAlpha=a;ctx.textAlign='center';ctx.textBaseline='middle';
+ const first=P.scenes[0];if(first){drawCover(first.m,0,first.k);}
+ X.fillStyle='rgba(5,8,16,.55)';X.fillRect(0,0,W,H);
+ const a=ease(t/0.6);X.save();X.globalAlpha=a;X.textAlign='center';X.textBaseline='middle';
  const words=P.I.name.split(' ');const half=Math.ceil(words.length/2);const L=words.length>2?[words.slice(0,half).join(' '),words.slice(half).join(' ')]:[P.I.name];
- L.forEach((l,i)=>{const s=fitFont(l,'900',62,26,W-2*M);ctx.fillStyle=goldGrad(400+i*72-30,400+i*72+30);ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=18;ctx.fillText(l,W/2,420+i*72-(L.length-1)*36+(1-a)*20);});
- ctx.shadowBlur=0;
- if(P.I.area){fitFont(P.I.area,'700',20,12,W-2*M);ctx.fillStyle='#e6ebf5';ctx.fillText(P.I.area,W/2,540);}
- const hook=P.lines[0]||'';if(hook){ctx.globalAlpha=ease((t-0.5)/0.6);fitFont(hook,'600',24,14,W-2*M);ctx.fillStyle='#fff';ctx.fillText(hook,W/2,600);}
- ctx.restore();ctx.textAlign='left';
+ L.forEach((l,i)=>{fitFont(l,'900',62,26,W-2*M);X.fillStyle=goldGrad(400+i*72-30,400+i*72+30);X.shadowColor='rgba(0,0,0,.6)';X.shadowBlur=18;X.fillText(l,W/2,420+i*72-(L.length-1)*36+(1-a)*20);});
+ X.shadowBlur=0;const by=420+(L.length-1)*36+66;
+ if(P.I.area){fitFont(P.I.area,'700',20,12,W-2*M);X.fillStyle='#e6ebf5';X.fillText(P.I.area,W/2,by);}
+ const hook=P.lines[0]||'';if(hook){X.globalAlpha=ease((t-0.5)/0.6);X.font=FONT('800',26);fitFont(plain(hook),'800',26,14,W-2*M);richLine(hook,W/2,by+56);}
+ X.restore();X.textAlign='left';
+ if(first&&t>P.INTRO-0.45){X.globalAlpha=ease((t-(P.INTRO-0.45))/0.45);drawCover(first.m,0,first.k);X.globalAlpha=1;}
 }
 function outro(P,t){
- const last=P.scenes[P.scenes.length-1];if(last)drawCover(last.m,1,last.k);
- const u=(t-P.OUT0)/(P.T-P.OUT0);ctx.fillStyle=`rgba(5,8,16,${0.35+0.45*ease(u/0.3)})`;ctx.fillRect(0,0,W,H);
- ctx.save();ctx.globalAlpha=ease(u/0.3);ctx.textAlign='center';ctx.textBaseline='middle';
- fitFont(P.I.name,'900',48,22,W-2*M);ctx.fillStyle=goldGrad(370,430);ctx.fillText(P.I.name,W/2,400);
- const tag=P.lines[P.lines.length-1]||'';if(tag){fitFont(tag,'600',22,13,W-2*M);ctx.fillStyle='#fff';ctx.fillText(tag,W/2,458);}
- const bw=Math.min(W-2*M,ctx.measureText(P.I.cta).width+120);fitFont(P.I.cta,'800',20,12,bw-40);const pul=1+0.03*Math.sin(t*6);
- ctx.save();ctx.translate(W/2,560);ctx.scale(pul,pul);rr(-bw/2,-30,bw,60,30);ctx.fillStyle=goldGrad(-30,30);ctx.fill();ctx.fillStyle='#2a1a00';ctx.fillText(P.I.cta,0,1);ctx.restore();
- if(P.I.note){fitFont(P.I.note,'700',22,12,W-2*M);ctx.fillStyle='#fff';ctx.fillText(P.I.note,W/2,640);}
- ctx.font=FONT('500',12);ctx.fillStyle='rgba(230,235,245,.6)';ctx.fillText('Hình ảnh mang tính minh họa · Video tạo bởi QBK BĐS Video',W/2,CARD_B-10);
- ctx.restore();ctx.textAlign='left';
+ const last=P.scenes[P.scenes.length-1];if(last){const xf=drawCover(last.m,1,last.k);if(last.m.ov.items.length)drawOverlay(last.m,xf,99,true);}
+ RECTS=[];const u=(t-P.OUT0)/(P.T-P.OUT0);X.fillStyle=`rgba(5,8,16,${0.35+0.45*ease(u/0.3)})`;X.fillRect(0,0,W,H);
+ X.save();X.globalAlpha=ease(u/0.3);X.textAlign='center';X.textBaseline='middle';
+ fitFont(P.I.name,'900',48,22,W-2*M);X.fillStyle=goldGrad(370,430);X.fillText(P.I.name,W/2,400);
+ const tag=plain(P.lines[P.lines.length-1]||'');if(tag){fitFont(tag,'600',22,13,W-2*M);X.fillStyle='#fff';X.fillText(tag,W/2,458);}
+ X.font=FONT('800',20);const bw=Math.min(W-2*M,X.measureText(P.I.cta).width+120);fitFont(P.I.cta,'800',20,12,bw-40);const pul=1+0.03*Math.sin(t*6);
+ X.save();X.translate(W/2,560);X.scale(pul,pul);rr(-bw/2,-30,bw,60,30);X.fillStyle=goldGrad(-30,30);X.fill();X.fillStyle='#2a1a00';X.fillText(P.I.cta,0,1);X.restore();
+ if(P.I.note){fitFont(P.I.note,'700',22,12,W-2*M);X.fillStyle='#fff';X.fillText(P.I.note,W/2,640);}
+ X.font=FONT('500',12);X.fillStyle='rgba(230,235,245,.6)';X.fillText('Hình ảnh mang tính minh họa · Video tạo bởi QBK BĐS Video',W/2,CARD_B-10);
+ X.restore();X.textAlign='left';
+}
+const cv=$('#cv'),ctx=cv.getContext('2d');
+function sceneFrame(P,sc,i,t){
+ const u=(t-sc.t0)/sc.d,τ=t-sc.t0;
+ if(sc.m.type==='video'&&!sc._started){sc._started=true;sc.m.el.currentTime=0;sc.m.el.play().catch(()=>{});}
+ if(i>0&&τ<0.45){const pv=P.scenes[i-1];const xf0=drawCover(pv.m,1,pv.k);if(pv.m.ov.items.length)drawOverlay(pv.m,xf0,99,true);RECTS=[];}
+ const xf=drawCover(sc.m,u,sc.k,i>0?ease(τ/0.45):1);
+ gradTop();
+ if(sc.m.ov.items.length){X.save();if(i>0)X.globalAlpha=ease(τ/0.45);drawOverlay(sc.m,xf,τ,false);X.restore();}
+ topBar(P,t);
+ if(P.cap==='top')titleTop(sc.cap,u);else captionCard(sc.cap,u,i,P.scenes.length);
 }
 function RENDER(P,t){
- RECTS=[];ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
- if(t<P.INTRO){intro(P,t);}
- else if(t>=P.OUT0){outro(P,t);}
- else{const i=P.scenes.findIndex(s=>t<s.t0+s.d);const sc=P.scenes[i];const u=(t-sc.t0)/sc.d;
-  if(sc.m.type==='video'&&sc.m.el.paused&&!sc._started){sc._started=true;sc.m.el.currentTime=0;sc.m.el.play().catch(()=>{});}
-  if(i>0&&u*sc.d<0.45){const pv=P.scenes[i-1];drawCover(pv.m,1,pv.k);drawCover(sc.m,u,sc.k,ease(u*sc.d/0.45));}
-  else drawCover(sc.m,u,sc.k);
-  gradTop();topBar(P,t);caption(sc.cap,u,i,P.scenes.length);}
- if(t<P.INTRO&&t>P.INTRO-0.45){ /* fade into scene 1 */ const sc=P.scenes[0];ctx.globalAlpha=ease((t-(P.INTRO-0.45))/0.45);drawCover(sc.m,0,sc.k);ctx.globalAlpha=1;}
+ X=ctx;RECTS=[];X.fillStyle='#000';X.fillRect(0,0,W,H);
+ if(t<P.INTRO)intro(P,t);
+ else if(t>=P.OUT0)outro(P,t);
+ else{const i=P.scenes.findIndex(s=>t<s.t0+s.d);sceneFrame(P,P.scenes[i],i,t);}
 }
 async function play(P,record){
- S.media.forEach(m=>{if(m.type==='video'){m.el.pause();}});P.scenes.forEach(s=>s._started=false);
- $('#ph').style.display='none';const phone=$('#phone');const old=phone.querySelector('video');if(old)old.remove();cv.style.display='block';
+ S.media.forEach(m=>{if(m.type==='video')m.el.pause();});P.scenes.forEach(s=>s._started=false);
+ $('#ph').style.display='none';const old=$('#phone video');if(old)old.remove();cv.style.display='block';
  let rec,chunks=[],done;
  if(record){const stream=cv.captureStream(FPS);const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));
   rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8e6});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};done=new Promise(r=>rec.onstop=r);rec.start(250);}
@@ -318,6 +504,58 @@ async function play(P,record){
  return{late,maxMs};
 }
 
+/* ---------- EDITOR ---------- */
+const ed=$('#ed'),ecv=$('#edcv'),ectx=ecv.getContext('2d');
+$('#edIcon').innerHTML=ICONS.map(([v,n])=>`<option value="${v}">${n}</option>`).join('');
+const HINT={main:'Bấm vào vị trí dự án (căn nhà, lô đất).',poi:'Chọn loại tiện ích, nhập nhãn rồi bấm lên ảnh. Có thể bấm nhiều lần.',
+ road:'Bấm từng điểm dọc theo con đường, xong bấm "Kết thúc đường" hoặc nháy đúp. Ảnh drone: kẻ từ gần (dưới) ra xa (trên).',
+ plot:'Bấm lần lượt 4 góc lô đất. Nhập dài, rộng để hiện m².',card:'Bấm điểm tiện ích trên ảnh, rồi bấm chỗ đặt thẻ ảnh.',
+ ring:'Bấm tâm (thường là dự án), rồi bấm ra mép vòng. Nhãn ví dụ "1 km".',text:'Nhập tên (VD: SÔNG CỔ CÒ) rồi bấm chỗ đặt chữ.'};
+const FIELDS={main:['fLabel'],poi:['fLabel','fIcon'],road:['fLabel'],plot:['fDims'],card:['fLabel','fIcon','fPhoto'],ring:['fLabel'],text:['fLabel']};
+const DEF_LBL={main:'VỊ TRÍ ĐẤT',road:'',ring:'1 km',text:''};
+let E={i:-1,tool:null,tmp:[],photo:null};
+function openEditor(i){E={i,tool:null,tmp:[],photo:null};const m=S.media[i];$('#edIx').textContent=i+1;
+ if(m.type==='video'){try{m.el.currentTime=Math.min(0.5,(m.dur||1)/2);}catch(e){} m.el.onseeked=edDraw;}
+ document.querySelectorAll('#edStyle .chip').forEach(c=>c.classList.toggle('on',c.dataset.v===m.ov.style));
+ setTool(null);ed.classList.add('open');edDraw();}
+seg('#edStyle',v=>{S.media[E.i].ov.style=v;edDraw();});
+function setTool(t){E.tool=t;E.tmp=[];document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ $('#edHint').textContent=t?HINT[t]:'Chọn một công cụ rồi bấm lên ảnh.';
+ ['fLabel','fIcon','fDims','fPhoto'].forEach(f=>$('#'+f).style.display=t&&FIELDS[t].includes(f)?'':'none');
+ $('#edDone1').style.display=t==='road'?'':'none';
+ if(t&&DEF_LBL[t]!=null)$('#edLabel').value=DEF_LBL[t];else if(t==='poi'||t==='card')$('#edLabel').value='';edDraw();}
+document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>setTool(b.dataset.t));
+$('#edIcon').onchange=()=>{};
+$('#edPhoto').onchange=async e=>{const f=e.target.files[0];E.photo=f?await loadImg(URL.createObjectURL(f)):null;};
+const edXf=()=>coverXf(S.media[E.i],0,E.i);
+function lblOr(def){const v=$('#edLabel').value.trim();return v||def;}
+function iconName(){const v=$('#edIcon').value;return(ICONS.find(x=>x[0]===v)||[0,''])[1].toUpperCase();}
+function addItem(it){S.media[E.i].ov.items.push(it);E.tmp=[];edDraw();}
+ecv.addEventListener('click',e=>{if(!E.tool)return;const r=ecv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;
+ const p=S2P(edXf(),x,y);const t=E.tool;
+ if(t==='main')addItem({t,p,label:lblOr('VỊ TRÍ ĐẤT')});
+ else if(t==='poi')addItem({t,p,icon:$('#edIcon').value,label:lblOr(iconName())});
+ else if(t==='text'){if(!$('#edLabel').value.trim()){$('#edHint').textContent='Nhập tên khu vực trước khi bấm.';return;}addItem({t,p,label:$('#edLabel').value.trim()});}
+ else if(t==='road'){const l=E.tmp[E.tmp.length-1];if(!l||Math.hypot((l[0]-p[0])*W,(l[1]-p[1])*H)>6)E.tmp.push(p);edDraw();}
+ else if(t==='plot'){E.tmp.push(p);if(E.tmp.length===4)addItem({t,pts:E.tmp,len:$('#edLen').value.trim(),wid:$('#edWid').value.trim()});else edDraw();}
+ else if(t==='card'){E.tmp.push(p);if(E.tmp.length===2)addItem({t,a:E.tmp[0],p:E.tmp[1],icon:$('#edIcon').value,label:lblOr(iconName()),img:E.photo});else edDraw();}
+ else if(t==='ring'){E.tmp.push(p);if(E.tmp.length===2){const xf=edXf();const a=P2S(xf,E.tmp[0]),b=P2S(xf,E.tmp[1]);addItem({t,p:E.tmp[0],r:Math.hypot(a[0]-b[0],a[1]-b[1])/xf.w,label:$('#edLabel').value.trim()});}else edDraw();}
+});
+function finishRoad(){if(E.tool==='road'&&E.tmp.length>=2)addItem({t:'road',pts:E.tmp,label:$('#edLabel').value.trim()});}
+ecv.addEventListener('dblclick',finishRoad);$('#edDone1').onclick=finishRoad;
+$('#edUndo').onclick=()=>{if(E.tmp.length){E.tmp.pop();}else S.media[E.i].ov.items.pop();edDraw();};
+$('#edClear').onclick=()=>{S.media[E.i].ov.items=[];E.tmp=[];edDraw();};
+$('#edClose').onclick=()=>{finishRoad();ed.classList.remove('open');renderThumbs();};
+const NAMES={main:'Ghim dự án',poi:'Ghim',road:'Đường',plot:'Lô đất',card:'Thẻ ảnh',ring:'Vòng',text:'Chữ'};
+function edDraw(){if(E.i<0)return;const m=S.media[E.i];X=ectx;RECTS=[];X.fillStyle='#000';X.fillRect(0,0,W,H);
+ const xf=drawCover(m,0,E.i);drawOverlay(m,xf,99,true);
+ // safe zone guide
+ X.save();X.setLineDash([6,6]);X.strokeStyle='rgba(255,105,180,.6)';X.lineWidth=1.5;X.strokeRect(M,96,W-2*M,CARD_B-96);X.restore();
+ if(E.tmp.length){X.save();X.strokeStyle='#ffe14d';X.fillStyle='#ffe14d';X.lineWidth=2;X.setLineDash([5,4]);X.beginPath();E.tmp.forEach((v,i)=>{const s=P2S(xf,v);i?X.lineTo(s[0],s[1]):X.moveTo(s[0],s[1]);});X.stroke();
+  E.tmp.forEach(v=>{const s=P2S(xf,v);X.beginPath();X.arc(s[0],s[1],5,0,7);X.fill();});X.restore();}
+ $('#edItems').innerHTML=m.ov.items.map(it=>`<li>${NAMES[it.t]}${it.label?': '+it.label:''}${it.t==='plot'&&it.len?` (${it.len}×${it.wid}m)`:''}</li>`).join('')||'<li style="list-style:none;margin-left:-18px">Chưa có đồ họa nào.</li>';
+ X=ctx;}
+
 /* ---------- PIPELINE (Hoàn tất) ---------- */
 $('#btnPreview').onclick=async()=>{if(S.busy)return;S.busy=true;lock(true);$('#btnStop').disabled=false;await play(buildPlan(),false);S.busy=false;lock(false);$('#btnStop').disabled=true;};
 $('#btnStop').onclick=()=>{S.stop=true;};
@@ -327,31 +565,34 @@ $('#btnGo').onclick=async()=>{
  AGENTS.forEach(a=>ag(a.id,'idle',0));$('#log').innerHTML='<span class="a">[hệ thống]</span> Bắt đầu job mới.';$('#btnDl').disabled=true;$('#qa').innerHTML='';
  try{
   ag('orc','run',.3);const P=buildPlan();
-  log('Điều phối',`Nhận ${S.media.length} file (${S.media.filter(m=>m.type==='image').length} ảnh, ${S.media.filter(m=>m.type==='video').length} video). Giao việc cho 3 agent chạy song song.`);
+  log('Điều phối',`Nhận ${S.media.length} file (${S.media.filter(m=>m.type==='image').length} ảnh, ${S.media.filter(m=>m.type==='video').length} video). Giao việc cho 4 agent chạy song song.`);
   await sleep(500);ag('orc','ok',.5);
-  // parallel: media, writer, map
   await Promise.all([
-   (async()=>{ag('med','run',0);for(let i=0;i<S.media.length;i++){const m=S.media[i];await sleep(220);
-     const kind=m.type==='video'?'clip':(m.w>m.h*1.2?'ảnh ngang (phối cảnh/drone)':m.h>m.w*1.2?'ảnh dọc':'ảnh vuông');
-     log('Phân tích media',`#${i+1} ${m.name.slice(0,28)} · ${m.w}×${m.h} · ${kind}${m.type==='video'?' · dùng '+P.scenes[i].d.toFixed(1)+'s':''}`);ag('med','run',(i+1)/S.media.length);}
+   (async()=>{ag('med','run',0);for(let i=0;i<S.media.length;i++){const m=S.media[i];await sleep(200);
+     const kind=m.type==='video'?'clip':(m.w>m.h*1.2?'ảnh ngang':m.h>m.w*1.2?'ảnh dọc':'ảnh vuông');
+     log('Phân tích media',`#${i+1} ${m.name.slice(0,26)} · ${m.w}×${m.h} · ${kind} · kiểu ${m.ov.style==='drone'?'drone phối cảnh':'vệ tinh nhìn thẳng'} · ${P.scenes[i].d.toFixed(1)}s`);ag('med','run',(i+1)/S.media.length);}
      ag('med','ok',1);})(),
    (async()=>{ag('wri','run',.2);await sleep(700);
-     if(P.auto)log('Biên kịch',`Không có kịch bản, tự viết ${P.lines.length} dòng giọng "${document.querySelector('#tone .on').textContent}". Hook: "${P.lines[0]}"`);
+     if(P.auto)log('Biên kịch',`Không có kịch bản, tự viết ${P.lines.length} dòng giọng "${document.querySelector('#tone .on').textContent}". Hook: "${plain(P.lines[0])}"`);
      else log('Biên kịch',`Dùng kịch bản người dùng: ${P.lines.length} dòng, gán cho ${P.scenes.length} cảnh.`);
-     const long=P.lines.filter(l=>l.length>60);if(long.length)log('Biên kịch',`${long.length} dòng dài hơn 60 ký tự, chữ sẽ tự co.`);
+     log('Biên kịch',`Kiểu chữ: ${P.cap==='top'?'tiêu đề trên, chữ trong *...* tô vàng':'thẻ dưới'}.`);
      ag('wri','ok',1);})(),
    (async()=>{ag('map','run',.3);await sleep(450);
-     if(isFinite(P.I.lat)&&isFinite(P.I.lon)){log('Bản đồ',`Có tọa độ ${P.I.lat}, ${P.I.lon} và ${P.I.pois.length} tiện ích. Cảnh bản đồ vệ tinh cần backend (giai đoạn 2), bản xem trước bỏ qua.`);ag('map','skip',1);}
-     else{log('Bản đồ','Chưa nhập tọa độ, bỏ qua cảnh bản đồ (không tự bịa vị trí).');ag('map','skip',1);}})()
+     if(isFinite(P.I.lat)&&isFinite(P.I.lon)){log('Bản đồ hạ tầng',`Có tọa độ ${P.I.lat}, ${P.I.lon}. Cảnh tự nhận ra hạ tầng (Ngay cửa nhà / Metro / Cầu & sân bay) chạy ở backend (giai đoạn 2), bản xem trước bỏ qua.`);}
+     else log('Bản đồ hạ tầng','Chưa nhập tọa độ, bỏ qua cảnh bản đồ (không tự bịa vị trí).');ag('map','skip',1);})(),
+   (async()=>{ag('ovl','run',.2);await sleep(550);const n=S.media.reduce((a,m)=>a+m.ov.items.length,0);
+     if(!n){log('Đồ họa','Chưa có ghim/đường nào. Bấm "✎ Ghim" trên ảnh để thêm ghim, đường neon, lô đất, thẻ ảnh.');ag('ovl','skip',1);return;}
+     S.media.forEach((m,i)=>{if(!m.ov.items.length)return;const c={};m.ov.items.forEach(it=>c[NAMES[it.t]]=(c[NAMES[it.t]]||0)+1);
+      log('Đồ họa',`Cảnh ${i+1} (${m.ov.style==='drone'?'neon drone':'vệ tinh'}): `+Object.entries(c).map(([k,v])=>`${v} ${k.toLowerCase()}`).join(', '));});
+     ag('ovl','ok',1);})()
   ]);
   ag('orc','run',.8);log('Điều phối',`Gộp kết quả: ${P.scenes.length} cảnh, tổng ${P.T.toFixed(1)}s. Chuyển sang Dựng hình.`);await sleep(300);ag('orc','ok',1);
   ag('cmp','run',0);log('Dựng hình','Ghi video 576×1024 · 30fps theo thời gian thực...');
   const R=await play(P,true);ag('cmp','ok',1);
   log('Dựng hình',`Xong: ${(R.blob.size/1e6).toFixed(1)} MB, ${R.elapsed.toFixed(1)}s, khung trễ ${R.late}.`);
-  ag('qa','run',.5);await sleep(400);
-  const checks=[];
-  // safe-zone check over sample frames
-  let viol=0;for(let t=0;t<P.T;t+=0.5){RENDER(P,t);for(const r of RECTS){if(r[0]<M-0.5||r[2]>W-M+0.5||r[3]>CARD_B+0.5)viol++;}}
+  ag('qa','run',.5);await sleep(300);
+  const checks=[];let viol=0;
+  for(let t=0;t<P.T;t+=0.5){RENDER(P,t);for(const r of RECTS){if(r[0]<M-0.5||r[2]>W-M+0.5||r[3]>CARD_B+0.5)viol++;}}
   checks.push([viol===0,`Vùng an toàn (lề ${M}px, đáy 84px): ${viol} vi phạm`]);
   checks.push([R.late<=3,`Khung trễ: ${R.late}${R.late>3?' (nên dựng lại, giữ tab hiển thị)':''}`]);
   checks.push([R.blob.size>300e3,`Dung lượng: ${(R.blob.size/1e6).toFixed(1)} MB`]);
@@ -370,9 +611,8 @@ $('#btnGo').onclick=async()=>{
 $('#btnDl').onclick=()=>{if(!S.blob)return;const a=document.createElement('a');a.href=S.url;
  a.download=(($('#pName').value.trim()||'video-bds').replace(/[^\p{L}\p{N}]+/gu,'-').toLowerCase())+'.webm';a.click();};
 
-/* initial frame */
 ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-window.QBK={S,buildPlan,RENDER,addFiles};
+window.QBK={S,buildPlan,RENDER,addFiles,openEditor};
 })();
 </script>
 </body>
