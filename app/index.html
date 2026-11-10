@@ -69,6 +69,9 @@ input:focus,textarea:focus,select:focus{outline:2px solid #ffc24766;border-color
 .note{font-size:11.5px;color:var(--mut);margin-top:8px}
 .qa{font-size:12px;margin:6px 0 0;padding-left:18px}.qa li{margin:2px 0}
 .qa .pass{color:var(--ok)}.qa .fail{color:var(--warn)}
+#srv{font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--panel)}
+#srv b{color:var(--ok)}#srv i{font-style:normal;color:var(--warn)}
+.chk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);margin-top:10px}.chk input{width:auto}
 details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
 /* editor */
 #ed{position:fixed;inset:0;background:#05070dee;z-index:20;display:none;align-items:center;justify-content:center;padding:16px}
@@ -88,6 +91,7 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
 <body>
 <header>
   <div class="logo">QBK <b>BĐS</b> Video</div>
+  <div id="srv">Đang kiểm tra máy chủ…</div>
   <div class="steps" id="steps">
     <span class="step on">1 · Tải lên</span><span class="step">2 · Kịch bản</span><span class="step">3 · Agent dựng</span><span class="step">4 · Xuất video</span>
   </div>
@@ -100,6 +104,7 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
       <div class="drop" id="drop"><big>⬆</big><b>Kéo thả hoặc bấm để chọn file</b><div class="sub" style="margin:4px 0 0">JPG, PNG, WEBP, MP4, MOV, WEBM</div></div>
       <input type="file" id="file" accept="image/*,video/*" multiple hidden>
       <div class="thumbs" id="thumbs"></div>
+      <label class="chk"><input type="checkbox" id="aiOrder" checked> Cho agent Phân tích media sắp xếp lại thứ tự cảnh</label>
     </div>
     <div class="card">
       <h2>Thông tin dự án</h2>
@@ -156,13 +161,15 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
       <h2><span class="n">4</span>Xuất video</h2>
       <div class="exp">
         <div class="row">
-          <div><label>Định dạng</label><select id="fmt"><option value="webm">WebM (trong trình duyệt)</option><option value="mp4" disabled>MP4 H.264 (cần backend)</option></select></div>
-          <div><label>Độ phân giải</label><select id="res"><option>576 × 1024</option><option disabled>1080 × 1920 (backend)</option></select></div>
+          <div><label>Định dạng</label><select id="fmt"><option value="mp4" disabled>MP4 H.264 (cần máy chủ)</option><option value="webm" selected>WebM</option></select></div>
+          <div><label>Độ phân giải</label><select id="res"><option value="1080" disabled>1080 × 1920</option><option value="720" disabled>720 × 1280</option><option value="576" selected>576 × 1024</option></select></div>
         </div>
+        <div id="musicBox" style="display:none"><label>Nhạc nền (không bắt buộc, MP3/M4A/WAV)</label><input type="file" id="music" accept="audio/*">
+          <label>Âm lượng nhạc: <span id="volv">80</span>%</label><input type="range" id="vol" min="0" max="150" value="80" style="padding:0"></div>
         <div class="meta" id="meta"><span>Trạng thái</span><b>Chưa có video</b></div>
         <ul class="qa" id="qa"></ul>
         <button class="btn pri" id="btnDl" disabled>⬇ Tải video</button>
-        <p class="note">Video ghi theo thời gian thực, giữ tab đang mở khi dựng. Muốn MP4: <code>ffmpeg -i in.webm -c:v libx264 -crf 20 -pix_fmt yuv420p out.mp4</code></p>
+        <p class="note" id="expNote">Video ghi theo thời gian thực, giữ tab đang mở khi dựng. Chạy app bằng máy chủ (<code>npm start</code>) để xuất MP4 1080×1920 có nhạc nền.</p>
       </div>
     </div>
   </section>
@@ -209,7 +216,8 @@ const ease=u=>{u=clamp(u);return u*u*(3-2*u);};
 const back=u=>{u=clamp(u)-1;return 1+2.70158*u*u*u+1.70158*u*u;};
 const lerp=(a,b,u)=>a+(b-a)*u;
 const FONT=(w,s)=>`${w} ${s}px "Segoe UI","Helvetica Neue",Arial,sans-serif`;
-const S={media:[],tone:'sang',cap:'top',busy:false,blob:null,url:null,stop:false,map:null,mapKey:''};
+const S={media:[],tone:'sang',cap:'top',busy:false,blob:null,url:null,stop:false,map:null,mapKey:'',ai:null,aiKey:''};
+const SRV={on:false,claude:false,ffmpeg:false};
 let X; // active 2D context (main canvas or editor canvas)
 let RECTS=[];
 
@@ -289,12 +297,16 @@ function info(){return{name:$('#pName').value.trim()||'DỰ ÁN CỦA BẠN',are
 // overlay timeline: items appear one after another like the CapCut tutorials
 function ovTimes(items){let t=0.35;return items.map(it=>{const d={road:1.3,plot:1.1,card:1.1,ring:1.0}[it.t]||0.6;const st=t;t+=it.t==='road'?0.9:it.t==='plot'||it.t==='card'?0.75:0.5;return{st,d};});}
 function sceneDur(m){const base=m.type==='video'?clamp(m.dur||4,2.5,6):3.4;const n=m.ov.items.length;if(!n)return base;const tt=ovTimes(m.ov.items);const last=tt[n-1];return Math.max(base,last.st+last.d+1.4);}
+function aiKey(){return JSON.stringify([$('#script').value,S.tone,S.media.map(m=>m.id),$('#pName').value,$('#pArea').value,$('#pCta').value]);}
 function buildPlan(){
  const I=info();let lines=$('#script').value.split('\n').map(s=>s.trim()).filter(Boolean);const auto=!lines.length;
  if(auto)lines=TONES[S.tone];
+ let hook=lines[0]||'',tagline=lines[lines.length-1]||'',cta=I.cta;
+ const ai=S.ai&&S.aiKey===aiKey()?S.ai:null;
+ if(ai&&ai.lines.length){lines=ai.lines;hook=ai.hook||hook;tagline=ai.tagline||tagline;if(!$('#pCta').value.trim()&&ai.cta)cta=ai.cta;}
  const INTRO=2.6,OUT=3.2,MAPT=S.map?S.map.T:0;let t=INTRO+MAPT;const scenes=[];
  S.media.forEach((m,i)=>{const d=sceneDur(m);scenes.push({m,t0:t,d,cap:lines[i%lines.length],k:i});t+=d;});
- return{I,scenes,INTRO,MAP1:INTRO+MAPT,OUT0:t,T:t+OUT,auto,lines,cap:S.cap,map:S.map};
+ return{I,scenes,INTRO,MAP1:INTRO+MAPT,OUT0:t,T:t+OUT,auto,lines,hook,tagline,cta,ai:!!ai,cap:S.cap,map:S.map};
 }
 
 /* ---------- DRAW HELPERS ---------- */
@@ -459,7 +471,7 @@ function intro(P,t){
  L.forEach((l,i)=>{fitFont(l,'900',62,26,W-2*M);X.fillStyle=goldGrad(400+i*72-30,400+i*72+30);X.shadowColor='rgba(0,0,0,.6)';X.shadowBlur=18;X.fillText(l,W/2,420+i*72-(L.length-1)*36+(1-a)*20);});
  X.shadowBlur=0;const by=420+(L.length-1)*36+66;
  if(P.I.area){fitFont(P.I.area,'700',20,12,W-2*M);X.fillStyle='#e6ebf5';X.fillText(P.I.area,W/2,by);}
- const hook=P.map?'Hạ tầng quanh dự án: *'+P.map.themes.map(th=>th.title.toLowerCase()).join(' · ')+'*':(P.lines[0]||'');if(hook){X.globalAlpha=ease((t-0.5)/0.6)*(P.map?1-ease((t-2.0)/0.5):1);X.font=FONT('800',26);fitFont(plain(hook),'800',P.map?22:26,12,W-2*M);richLine(hook,W/2,by+56);}
+ const hook=P.map?'Hạ tầng quanh dự án: *'+P.map.themes.map(th=>th.title.toLowerCase()).join(' · ')+'*':(P.hook||'');if(hook){X.globalAlpha=ease((t-0.5)/0.6)*(P.map?1-ease((t-2.0)/0.5):1);X.font=FONT('800',26);fitFont(plain(hook),'800',P.map?22:26,12,W-2*M);richLine(hook,W/2,by+56);}
  X.restore();X.textAlign='left';
  if(!P.map&&first&&t>P.INTRO-0.45){X.globalAlpha=ease((t-(P.INTRO-0.45))/0.45);drawCover(first.m,0,first.k);X.globalAlpha=1;}
 }
@@ -468,9 +480,9 @@ function outro(P,t){
  RECTS=[];const u=(t-P.OUT0)/(P.T-P.OUT0);X.fillStyle=`rgba(5,8,16,${0.35+0.45*ease(u/0.3)})`;X.fillRect(0,0,W,H);
  X.save();X.globalAlpha=ease(u/0.3);X.textAlign='center';X.textBaseline='middle';
  fitFont(P.I.name,'900',48,22,W-2*M);X.fillStyle=goldGrad(370,430);X.fillText(P.I.name,W/2,400);
- const tag=plain(P.lines[P.lines.length-1]||'');if(tag){fitFont(tag,'600',22,13,W-2*M);X.fillStyle='#fff';X.fillText(tag,W/2,458);}
- X.font=FONT('800',20);const bw=Math.min(W-2*M,X.measureText(P.I.cta).width+120);fitFont(P.I.cta,'800',20,12,bw-40);const pul=1+0.03*Math.sin(t*6);
- X.save();X.translate(W/2,560);X.scale(pul,pul);rr(-bw/2,-30,bw,60,30);X.fillStyle=goldGrad(-30,30);X.fill();X.fillStyle='#2a1a00';X.fillText(P.I.cta,0,1);X.restore();
+ const tag=plain(P.tagline||'');if(tag){fitFont(tag,'600',22,13,W-2*M);X.fillStyle='#fff';X.fillText(tag,W/2,458);}
+ X.font=FONT('800',20);const bw=Math.min(W-2*M,X.measureText(P.cta).width+120);fitFont(P.cta,'800',20,12,bw-40);const pul=1+0.03*Math.sin(t*6);
+ X.save();X.translate(W/2,560);X.scale(pul,pul);rr(-bw/2,-30,bw,60,30);X.fillStyle=goldGrad(-30,30);X.fill();X.fillStyle='#2a1a00';X.fillText(P.cta,0,1);X.restore();
  if(P.I.note){fitFont(P.I.note,'700',22,12,W-2*M);X.fillStyle='#fff';X.fillText(P.I.note,W/2,640);}
  X.font=FONT('500',12);X.fillStyle='rgba(230,235,245,.6)';X.fillText('Hình ảnh mang tính minh họa · Video tạo bởi QBK BĐS Video',W/2,CARD_B-10);
  X.restore();X.textAlign='left';
@@ -562,6 +574,64 @@ function edDraw(){if(E.i<0)return;const m=S.media[E.i];X=ectx;RECTS=[];X.fillSty
  $('#edItems').innerHTML=m.ov.items.map(it=>`<li>${NAMES[it.t]}${it.label?': '+it.label:''}${it.t==='plot'&&it.len?` (${it.len}×${it.wid}m)`:''}</li>`).join('')||'<li style="list-style:none;margin-left:-18px">Chưa có đồ họa nào.</li>';
  X=ctx;}
 
+/* ---------- MÁY CHỦ & AGENT AI ---------- */
+async function api(path,body){const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ let j=null;try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('HTTP '+r.status));return j;}
+async function checkServer(){
+ const el=$('#srv');if(!/^https?:$/.test(location.protocol)){el.innerHTML='Chạy không máy chủ · <i>AI và MP4 tắt</i>';return;}
+ try{const r=await fetch('/api/health');const j=await r.json();Object.assign(SRV,{on:true,claude:!!j.claude,ffmpeg:!!j.ffmpeg});
+  el.innerHTML=`Agent AI: ${SRV.claude?'<b>bật</b>':'<i>tắt (thiếu khóa API)</i>'} · MP4: ${SRV.ffmpeg?'<b>bật</b>':'<i>tắt</i>'}`;
+  if(SRV.ffmpeg){const f=$('#fmt');f.options[0].disabled=false;f.options[0].textContent='MP4 H.264';f.value='mp4';const r2=$('#res');[...r2.options].forEach(o=>o.disabled=false);r2.value='1080';$('#musicBox').style.display='';
+   $('#expNote').textContent='Video ghi theo thời gian thực trong trình duyệt, rồi máy chủ chuyển sang MP4 và ghép nhạc nền. Giữ tab mở khi dựng.';}
+ }catch(e){el.innerHTML='Không kết nối được máy chủ · <i>AI và MP4 tắt</i>';}}
+async function thumbOf(m,max=768){
+ if(m.type==='video'){await new Promise(r=>{const v=m.el;const t=Math.min(1,(m.dur||2)/3);if(Math.abs(v.currentTime-t)<0.01)return r();v.onseeked=()=>r();try{v.currentTime=t;}catch(e){r();}setTimeout(r,1500);});}
+ const s=Math.min(1,max/Math.max(m.w||1,m.h||1));const c=document.createElement('canvas');c.width=Math.max(1,Math.round((m.w||1)*s));c.height=Math.max(1,Math.round((m.h||1)*s));
+ c.getContext('2d').drawImage(m.el,0,0,c.width,c.height);return c.toDataURL('image/jpeg',0.8);}
+async function runMediaAgent(){
+ const L=msg=>log('Phân tích media',msg);ag('med','run',0);
+ if(!S.media.length){L('Không có ảnh/video.');ag('med','skip',1);return;}
+ const local=()=>{S.media.forEach((m,i)=>{const kind=m.type==='video'?'clip':(m.w>m.h*1.2?'ảnh ngang':m.h>m.w*1.2?'ảnh dọc':'ảnh vuông');
+  L(`#${i+1} ${m.name.slice(0,26)} · ${m.w}×${m.h} · ${kind} · kiểu ${m.ov.style==='drone'?'drone phối cảnh':'vệ tinh nhìn thẳng'} · ${sceneDur(m).toFixed(1)}s`);});ag('med','ok',1);};
+ if(!SRV.claude){local();return;}
+ try{const sig=S.media.map(m=>m.id).join(',');
+  if(!(S.media.every(m=>m.ai))){
+   L(`Gửi ${S.media.length} ảnh cho Claude phân loại và chọn thứ tự...`);ag('med','run',.2);
+   const items=[];for(const m of S.media.slice(0,20))items.push({id:String(m.id),type:m.type,w:m.w,h:m.h,dur:m.dur,thumb:await thumbOf(m)});
+   const out=await api('/api/agents/media',{project:{name:$('#pName').value.trim(),area:$('#pArea').value.trim()},items});
+   const NAMEK={satellite_top:'vệ tinh',drone:'flycam',render:'phối cảnh',interior:'nội thất',amenity:'tiện ích',street:'đường phố',legal:'pháp lý',other:'khác'};
+   out.items.forEach(x=>{const m=S.media.find(q=>String(q.id)===x.id);if(!m)return;m.ai=x;if(!m.ov.items.length)m.ov.style=x.style;});
+   if($('#aiOrder').checked&&S.media.map(m=>String(m.id)).join(',')===sig){const rank=new Map(out.order.map((id,i)=>[id,i]));S.media.sort((a,b)=>(rank.get(String(a.id))??99)-(rank.get(String(b.id))??99));}
+   S.media.forEach((m,i)=>{if(m.ai)L(`#${i+1} ${NAMEK[m.ai.kind]||m.ai.kind} · ${m.ai.quality}/10 · ${m.ai.summary}`);});
+   if(out.notes)L('Lưu ý: '+out.notes);renderThumbs();
+  }else L('Dùng lại kết quả phân tích lần trước.');
+  ag('med','ok',1);
+ }catch(e){L('Claude lỗi ('+e.message+'), dùng phân tích cơ bản.');local();}}
+async function runWriterAgent(){
+ const L=msg=>log('Biên kịch',msg);ag('wri','run',.2);
+ const userScript=$('#script').value.trim();const toneName=document.querySelector('#tone .on').textContent;
+ if(SRV.claude&&S.media.length){
+  if(S.ai&&S.aiKey===aiKey())L('Dùng lại kịch bản AI đã viết.');
+  else try{L(userScript?'Gửi kịch bản của bạn cho Claude chuẩn hóa và tô từ khóa...':`Claude đang viết kịch bản giọng "${toneName}" cho ${S.media.length} cảnh...`);
+   const out=await api('/api/agents/script',{project:{name:$('#pName').value.trim(),area:$('#pArea').value.trim(),cta:$('#pCta').value.trim(),note:$('#pNote').value.trim()},
+    tone:S.tone,userScript,scenes:S.media.map(m=>m.ai||{kind:m.type})});
+   S.ai=out;S.aiKey=aiKey();L(`Hook: "${plain(out.hook)}"`);out.lines.forEach((l,i)=>L(`Cảnh ${i+1}: ${plain(l)}`));L(`Chốt: "${out.tagline}" · Nút: ${out.cta}`);
+  }catch(e){L('Claude lỗi ('+e.message+'), dùng kịch bản mẫu.');S.ai=null;}
+ }else{const P=buildPlan();
+  if(P.auto)L(`${SRV.claude?'':'Chưa bật AI: '}dùng ${P.lines.length} dòng mẫu giọng "${toneName}".`);else L(`Dùng kịch bản người dùng: ${P.lines.length} dòng.`);}
+ L(`Kiểu chữ: ${S.cap==='top'?'tiêu đề trên, chữ trong *...* tô vàng':'thẻ dưới'}.`);ag('wri','ok',1);}
+async function runVisualQA(P){
+ if(!SRV.claude)return [];
+ try{const ts=[1.2];if(P.map)for(let i=0;i<P.map.N;i++)ts.push(P.INTRO+i*4.6+4.0);P.scenes.forEach(s=>ts.push(s.t0+s.d*0.6));ts.push(P.T-1);
+  const pick=ts.length>10?ts.filter((_,i)=>i%Math.ceil(ts.length/10)===0):ts;const c=document.createElement('canvas');c.width=288;c.height=512;const cx=c.getContext('2d');
+  const frames=pick.map(t=>{RENDER(P,t);cx.drawImage(cv,0,0,288,512);return{t,image:c.toDataURL('image/jpeg',0.8)};});
+  log('Kiểm duyệt',`Gửi ${frames.length} khung hình cho Claude xem lỗi trình bày...`);
+  const out=await api('/api/agents/qa',{frames,duration:P.T});
+  if(!out.issues.length){log('Kiểm duyệt','✔ Claude không thấy lỗi trình bày.');return [[true,'Claude xem khung hình: không thấy lỗi']];}
+  return out.issues.map(x=>{const bad=x.severity!=='low';log('Kiểm duyệt',`${bad?'⚠':'•'} ${x.time.toFixed(1)}s: ${x.problem} → ${x.fix}`);return [!bad,`${x.time.toFixed(1)}s: ${x.problem} (gợi ý: ${x.fix})`];});
+ }catch(e){log('Kiểm duyệt','Không gọi được Claude ('+e.message+'), chỉ dùng kiểm tra tự động.');return [];}}
+checkServer();
+
 /* ---------- AGENT BẢN ĐỒ HẠ TẦNG ---------- */
 async function runMapAgent(I){
  const L=m=>log('Bản đồ hạ tầng',m);
@@ -597,15 +667,7 @@ $('#btnGo').onclick=async()=>{
   log('Điều phối',`Nhận ${S.media.length} file (${S.media.filter(m=>m.type==='image').length} ảnh, ${S.media.filter(m=>m.type==='video').length} video). Giao việc cho 4 agent chạy song song.`);
   await sleep(500);ag('orc','ok',.5);
   await Promise.all([
-   (async()=>{ag('med','run',0);for(let i=0;i<S.media.length;i++){const m=S.media[i];await sleep(200);
-     const kind=m.type==='video'?'clip':(m.w>m.h*1.2?'ảnh ngang':m.h>m.w*1.2?'ảnh dọc':'ảnh vuông');
-     log('Phân tích media',`#${i+1} ${m.name.slice(0,26)} · ${m.w}×${m.h} · ${kind} · kiểu ${m.ov.style==='drone'?'drone phối cảnh':'vệ tinh nhìn thẳng'} · ${sceneDur(m).toFixed(1)}s`);ag('med','run',(i+1)/S.media.length);}
-     ag('med','ok',1);})(),
-   (async()=>{ag('wri','run',.2);await sleep(700);
-     if(P.auto)log('Biên kịch',`Không có kịch bản, tự viết ${P.lines.length} dòng giọng "${document.querySelector('#tone .on').textContent}". Hook: "${plain(P.lines[0])}"`);
-     else log('Biên kịch',`Dùng kịch bản người dùng: ${P.lines.length} dòng, gán cho ${P.scenes.length} cảnh.`);
-     log('Biên kịch',`Kiểu chữ: ${P.cap==='top'?'tiêu đề trên, chữ trong *...* tô vàng':'thẻ dưới'}.`);
-     ag('wri','ok',1);})(),
+   (async()=>{await runMediaAgent();await runWriterAgent();})(),
    runMapAgent(P.I),
    (async()=>{ag('ovl','run',.2);await sleep(550);const n=S.media.reduce((a,m)=>a+m.ov.items.length,0);
      if(!n){log('Đồ họa','Chưa có ghim/đường nào. Bấm "✎ Ghim" trên ảnh để thêm ghim, đường neon, lô đất, thẻ ảnh.');ag('ovl','skip',1);return;}
@@ -619,7 +681,7 @@ $('#btnGo').onclick=async()=>{
   ag('cmp','run',0);log('Dựng hình','Ghi video 576×1024 · 30fps theo thời gian thực...');
   const R=await play(P,true);ag('cmp','ok',1);
   log('Dựng hình',`Xong: ${(R.blob.size/1e6).toFixed(1)} MB, ${R.elapsed.toFixed(1)}s, khung trễ ${R.late}.`);
-  ag('qa','run',.5);await sleep(300);
+  ag('qa','run',.3);await sleep(100);
   const checks=[];let viol=0;
   for(let t=0;t<P.T;t+=0.5){RENDER(P,t);for(const r of RECTS){if(r[0]<M-0.5||r[2]>W-M+0.5||r[3]>CARD_B+0.5)viol++;}}
   checks.push([viol===0,`Vùng an toàn (lề ${M}px, đáy 84px): ${viol} vi phạm`]);
@@ -629,6 +691,7 @@ $('#btnGo').onclick=async()=>{
   if(P.map)checks.push([true,'Cảnh bản đồ có dòng ghi nguồn Esri, Maxar, OpenStreetMap']);
   checks.push([!!$('#pName').value.trim(),$('#pName').value.trim()?'Đã có tên dự án':'Chưa nhập tên dự án, đang dùng chữ mặc định']);
   checks.forEach(c=>log('Kiểm duyệt',(c[0]?'✔ ':'⚠ ')+c[1]));
+  (await runVisualQA(P)).forEach(c=>checks.push(c));
   $('#qa').innerHTML=checks.map(c=>`<li class="${c[0]?'pass':'fail'}">${c[0]?'✔':'⚠'} ${c[1]}</li>`).join('');
   ag('qa','ok',1);
   if(S.url)URL.revokeObjectURL(S.url);S.blob=R.blob;S.url=URL.createObjectURL(R.blob);
@@ -638,8 +701,20 @@ $('#btnGo').onclick=async()=>{
  }catch(e){log('Lỗi',String(e&&e.message||e));AGENTS.forEach(a=>{const d=$('#ag-'+a.id);if(d.classList.contains('run'))ag(a.id,'err');});}
  S.busy=false;lock(false);
 };
-$('#btnDl').onclick=()=>{if(!S.blob)return;const a=document.createElement('a');a.href=S.url;
- a.download=(($('#pName').value.trim()||'video-bds').replace(/[^\p{L}\p{N}]+/gu,'-').toLowerCase())+'.webm';a.click();};
+const fileBase=()=>($('#pName').value.trim()||'video-bds').normalize('NFC').replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'').toLowerCase()||'video-bds';
+function saveBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);}
+$('#vol').oninput=()=>{$('#volv').textContent=$('#vol').value;};
+$('#btnDl').onclick=async()=>{if(!S.blob)return;
+ if($('#fmt').value!=='mp4'||!SRV.ffmpeg){saveBlob(S.blob,fileBase()+'.webm');return;}
+ const btn=$('#btnDl'),old=btn.textContent;btn.disabled=true;btn.textContent='Đang chuyển sang MP4…';
+ try{const fd=new FormData();fd.append('video',S.blob,'video.webm');const mf=$('#music').files[0];if(mf)fd.append('music',mf,mf.name);
+  fd.append('res',$('#res').value);fd.append('volume',String($('#vol').value/100));fd.append('name',fileBase());
+  log('Dựng hình',`Gửi máy chủ chuyển MP4 ${$('#res').selectedOptions[0].textContent}${mf?' + nhạc nền '+mf.name:''}...`);
+  const r=await fetch('/api/export',{method:'POST',body:fd});
+  if(!r.ok){let m=r.statusText;try{m=(await r.json()).error;}catch(e){}throw new Error(m);}
+  const blob=await r.blob();saveBlob(blob,fileBase()+'.mp4');log('Dựng hình',`Đã xuất MP4 (${(blob.size/1e6).toFixed(1)} MB).`);
+ }catch(e){log('Lỗi','Xuất MP4 thất bại: '+e.message);alert('Xuất MP4 thất bại: '+e.message);}
+ btn.disabled=false;btn.textContent=old;};
 
 ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
 window.QBK={S,buildPlan,RENDER,addFiles,openEditor};

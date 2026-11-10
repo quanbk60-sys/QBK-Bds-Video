@@ -61,12 +61,12 @@ agent Đồ họa vẫn làm được khi người dùng không có tọa độ.
 
 ## 4. Kiến trúc kỹ thuật (bản đầy đủ)
 
-- **Frontend**: React/Next.js (bản xem trước hiện tại: `app/index.html`, một file, chạy ngay trong trình duyệt).
-- **Backend**: Node.js (Fastify) + Redis/BullMQ, lưu file S3 hoặc ổ đĩa.
+- **Frontend**: `app/index.html` + `app/map-engine.js` (không cần build), dựng và ghi video bằng canvas ngay trong trình duyệt.
+- **Backend**: Node.js + Express (`server/`). Hàng đợi Redis/BullMQ và lưu trữ S3 chỉ cần khi chạy nhiều người dùng cùng lúc (giai đoạn sau).
 - **Agent**: Claude API cho Phân tích media (vision), Biên kịch, QA; agent Bản đồ và Dựng hình là worker kỹ thuật.
 - **Render**: Playwright/Chromium cho cảnh canvas (bản đồ), FFmpeg ghép cảnh và xuất MP4.
 - API chính: `POST /projects`, `POST /projects/:id/media`, `PUT /projects/:id/script`,
-  `POST /projects/:id/render` (nút Hoàn tất), `GET /jobs/:id` (SSE tiến độ agent), `GET /projects/:id/export?format=mp4`.
+  (thiết kế ban đầu). Bản đã làm: `GET /api/health`, `POST /api/agents/media|script|qa`, `POST /api/export`.
 
 ## 5. Lộ trình
 
@@ -75,7 +75,7 @@ agent Đồ họa vẫn làm được khi người dùng không có tọa độ.
 | 0 | Kế hoạch + giao diện xem trước chạy được trong trình duyệt (dựng video từ ảnh/video, xuất WebM) | **Đã làm** |
 | 0b | Trình ghim & kẻ đường (skill video 2 + 3) trong app | **Đã làm** |
 | 0c | Agent Bản đồ hạ tầng tự nhận ra hạ tầng, dựng cảnh vệ tinh theo chủ đề trong trình duyệt (skill zip + video 1) | **Đã làm** |
-| 1 | Backend + hàng đợi, agent Biên kịch & Phân tích media gọi Claude, xuất MP4 bằng FFmpeg | Chờ duyệt |
+| 1 | Máy chủ Node.js, agent Phân tích media / Biên kịch / Kiểm duyệt gọi Claude, xuất MP4 1080×1920 + nhạc nền bằng FFmpeg, Docker | **Đã làm** |
 | 2 | Agent 2 gợi ý vị trí ghim, bám chuyển động clip drone, vẽ nguyên tuyến metro/vành đai (cần Overpass) | Chờ duyệt |
 | 3 | Giọng đọc TTS, nhạc nền, thư viện icon/label riêng của người dùng | Chờ duyệt |
 
