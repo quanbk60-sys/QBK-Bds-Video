@@ -9,8 +9,8 @@ Có 4 skill (1 skill gửi dạng zip + 3 skill học từ 3 video, video 1 đã
 
 | Skill | Nguồn | Nội dung chính | Agent dùng | Trạng thái trong app |
 |---|---|---|---|---|
-| [map-location-video](../skills/map-location-video/SKILL.md) | File zip | Vệ tinh Esri nghiêng 40°, ghim dự án giữa khung, 1 tiện ích/cảnh, tuyến OSRM, thẻ km/phút, label kim loại, tự kiểm tra vùng an toàn | Bản đồ hạ tầng | Backend (giai đoạn 2) |
-| [map-infrastructure-video](../skills/map-infrastructure-video/SKILL.md) | Video 1 (có lời thoại) | Chỉ cần vị trí, AI **tự nhận ra** đại lộ, vành đai, metro, cầu, sân bay, TTTM; cảnh theo chủ đề "Ngay cửa nhà / Metro đang chạy / Cầu & sân bay"; vòng 5/10/20 km; bảng chú thích màu | Bản đồ hạ tầng | Backend (giai đoạn 2) |
+| [map-location-video](../skills/map-location-video/SKILL.md) | File zip | Vệ tinh Esri nghiêng 40°, ghim dự án giữa khung, 1 tiện ích/cảnh, tuyến OSRM, thẻ km/phút, label kim loại, tự kiểm tra vùng an toàn | Bản đồ hạ tầng | **Đã chạy trong app** |
+| [map-infrastructure-video](../skills/map-infrastructure-video/SKILL.md) | Video 1 (có lời thoại) | Chỉ cần vị trí, AI **tự nhận ra** đại lộ, vành đai, metro, cầu, sân bay, TTTM; cảnh theo chủ đề "Ngay cửa nhà / Metro đang chạy / Cầu & sân bay"; vòng 5/10/20 km; bảng chú thích màu | Bản đồ hạ tầng | **Đã chạy trong app** (`app/map-engine.js`) |
 | [map-amenity-overlay](../skills/map-amenity-overlay/SKILL.md) | Video 2 | Trên ảnh vệ tinh nhìn thẳng: ghim vị trí đất, đường vàng phát sáng có tên đường, vòng bán kính, ghim tiện ích, lô đất 3D + m², tên sông phát sáng, thẻ ảnh nối nét đứt | Đồ họa ghim & tuyến | **Đã chạy trong app** |
 | [drone-route-pins](../skills/drone-route-pins/SKILL.md) | Video 3 | Trên ảnh/clip drone: tuyến neon xanh to dần theo phối cảnh, chấm sáng chạy, ghim bật lên có bóng, thẻ ảnh đường dẫn mảnh | Đồ họa ghim & tuyến | **Đã chạy trong app** |
 
@@ -41,7 +41,7 @@ dòng ghi nguồn Esri/OSM khi có cảnh bản đồ, **không bịa tọa đ�
 | 1 | **Điều phối** | Media, kịch bản, thông tin dự án | Kế hoạch job, giao việc, gộp kết quả, báo tiến độ | Hàng đợi job (BullMQ/Redis), state machine |
 | 2 | **Phân tích media** | Ảnh, video | Phân loại **vệ tinh nhìn thẳng / drone phối cảnh / phối cảnh / nội thất / pháp lý**, điểm chất lượng, đoạn clip đẹp, thứ tự cảnh | Claude (vision) + ffprobe/ffmpeg |
 | 3 | **Biên kịch** | Kịch bản (nếu có) + kết quả agent 2 | Hook 3s, tiêu đề từng cảnh có từ khóa tô vàng, CTA. Có kịch bản thì chỉ chuẩn hóa | Claude (văn bản) |
-| 4 | **Bản đồ hạ tầng** | Tọa độ dự án (+ tiện ích tùy chọn) | Cảnh vệ tinh 3D theo chủ đề, tự nhận ra hạ tầng, vòng km, chú thích | Skill map-location-video + map-infrastructure-video, Chromium headless, Overpass/Photon/OSRM/Esri |
+| 4 | **Bản đồ hạ tầng** | Tọa độ dự án (+ tiện ích tùy chọn) | Cảnh vệ tinh 3D theo chủ đề, tự nhận ra hạ tầng, vòng km, chú thích | Skill map-location-video + map-infrastructure-video, chạy ngay trong trình duyệt: Photon (bbox) / OSRM / Esri |
 | 5 | **Đồ họa ghim & tuyến** | Ảnh vệ tinh/drone + ghim người dùng cắm (giai đoạn sau: agent 2 gợi ý vị trí) | Lớp đồ họa động: ghim, đường neon, lô đất 3D, thẻ ảnh, vòng bán kính, tên khu vực | Skill map-amenity-overlay + drone-route-pins (canvas) |
 | 6 | **Dựng hình & xuất** | Kịch bản + media + cảnh bản đồ + lớp đồ họa | Video 9:16, xuất MP4/WebM | Canvas + FFmpeg |
 | 7 | **Kiểm duyệt (QA)** | Video + timeline | Vùng an toàn, khung trễ, thời lượng, dung lượng, ghi nguồn, "vị trí tạm" | Kiểm tra RECTS tự động + Claude đọc bảng khung hình |
@@ -74,8 +74,9 @@ agent Đồ họa vẫn làm được khi người dùng không có tọa độ.
 |---|---|---|
 | 0 | Kế hoạch + giao diện xem trước chạy được trong trình duyệt (dựng video từ ảnh/video, xuất WebM) | **Đã làm** |
 | 0b | Trình ghim & kẻ đường (skill video 2 + 3) trong app | **Đã làm** |
+| 0c | Agent Bản đồ hạ tầng tự nhận ra hạ tầng, dựng cảnh vệ tinh theo chủ đề trong trình duyệt (skill zip + video 1) | **Đã làm** |
 | 1 | Backend + hàng đợi, agent Biên kịch & Phân tích media gọi Claude, xuất MP4 bằng FFmpeg | Chờ duyệt |
-| 2 | Agent Bản đồ hạ tầng chạy skill headless (tự nhận ra hạ tầng), agent 2 gợi ý vị trí ghim, bám chuyển động clip drone | Chờ duyệt |
+| 2 | Agent 2 gợi ý vị trí ghim, bám chuyển động clip drone, vẽ nguyên tuyến metro/vành đai (cần Overpass) | Chờ duyệt |
 | 3 | Giọng đọc TTS, nhạc nền, thư viện icon/label riêng của người dùng | Chờ duyệt |
 
 ## 6. Bản xem trước (giai đoạn 0) làm được gì
@@ -85,4 +86,5 @@ Mở `app/index.html` bằng Chrome/Edge:
 - Kịch bản tùy chọn; bỏ trống thì có kịch bản mẫu tự sinh (mô phỏng agent Biên kịch, chưa gọi AI).
 - Bấm **✎ Ghim** trên ảnh: 7 công cụ đồ họa, 2 kiểu ảnh (vệ tinh nhìn thẳng / drone phối cảnh).
 - Bấm **Hoàn tất & tạo video**: 7 agent chạy lần lượt có log; video 576×1024 30fps được dựng và ghi thật bằng canvas + MediaRecorder.
-- Mục **Xuất video**: xem lại và tải file WebM. MP4 và cảnh bản đồ cần backend (giai đoạn 1–2).
+- Nhập tọa độ dự án: agent Bản đồ hạ tầng tự tìm ga, TTTM, bến xe, sân bay, cầu, dựng cảnh vệ tinh theo chủ đề (không cần ảnh cũng tạo được video). Cần mạng tới Esri, OSRM, Photon.
+- Mục **Xuất video**: xem lại và tải file WebM. MP4 cần backend (giai đoạn 1).

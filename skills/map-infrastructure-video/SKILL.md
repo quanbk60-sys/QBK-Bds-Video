@@ -20,23 +20,27 @@ Kết quả là video khoảng 27s dựng trên nền vệ tinh, AI **tự nhậ
 1. **Mở đầu** 3s: "HẠ TẦNG GIAO THÔNG / QUANH <TÊN DỰ ÁN>" (vàng + xanh), dòng phụ "vành đai · metro · cầu · sân bay". Ghim đỏ ở giữa.
 2. **Ngay cửa nhà**: đường lớn sát dự án (vẽ vàng, tên đường vàng viết dọc), địa danh gần (sân vận động, trung tâm hội nghị) với dòng nhỏ "cách <dự án> · 0,5 km".
 3. **Vành đai / trục chính** (ví dụ "Vành đai 3 · Phạm Hùng"): tuyến cam, bến xe gần.
-4. **Metro đang chạy**: từng tuyến metro một màu (tím, xanh), ga có icon tròn, nhãn ga + "cách … km".
+4. **Metro đang chạy** (app đặt là "Metro & nhà ga"): từng tuyến metro một màu (tím, xanh), ga có icon tròn, nhãn ga + "cách … km".
 5. **Trung tâm thương mại**: tuyến xanh lá từ dự án tới TTTM.
 6. **Cầu & sân bay**: zoom xa, vòng bán kính 5/10/20 km có nhãn km, tuyến trắng tới sân bay, cầu lớn.
 7. **Toàn cảnh + chú thích**: tất cả tuyến cùng lúc, hộp chú thích màu góc trên ("— Đại lộ Thăng Long", "— Metro 3 (Nhổn – Cầu Giấy)", "— Đường ra SB Nội Bài"…).
 
 Mỗi cảnh: tiêu đề vàng viền đen ở trên, label dự án là thẻ trắng (logo + tên), ghim địa điểm đỏ/xanh tùy loại.
 
-## Tự nhận ra hạ tầng (agent Bản đồ)
-- Truy vấn Overpass API quanh tọa độ (bán kính 3 km cho "ngay cửa nhà", 8 km cho metro/TTTM, 30 km cho sân bay/cầu):
-  `highway=trunk|primary|motorway` (lấy tên), `railway=subway|light_rail` + `station`, `shop=mall`, `leisure=stadium`,
-  `amenity=bus_station`, `aeroway=aerodrome`, `bridge=yes` + `highway` lớn.
-- Xếp hạng theo khoảng cách và độ nổi tiếng (có `wikidata`), mỗi chủ đề lấy 1–3 đối tượng.
-- Tuyến từ dự án tới điểm: OSRM như map-location-video. Đường đi metro: vẽ hình học way của tuyến.
-- Đối chiếu tên trước khi dùng, không bịa: nếu không tìm thấy chủ đề nào thì bỏ cảnh đó.
+## Tự nhận ra hạ tầng (agent Bản đồ) — đã cài trong app/map-engine.js
+- Dùng **Photon có bbox** quanh dự án (bán kính theo chủ đề: 3,5 km ngay cửa nhà, 7 km ga, 9 km TTTM, 12 km bến xe, 45 km cầu & sân bay).
+  Không có bbox thì Photon trả kết quả khắp thế giới với từ khóa chung ("ga" ra Gare de Lyon).
+- Truy vấn theo loại: `leisure:stadium`, `amenity:hospital`, `amenity:university`, `leisure:park`, `amenity:marketplace` (ngay cửa nhà, mỗi loại 1 điểm theo thứ tự ưu tiên);
+  `railway:station|stop|halt` (ga); `shop:mall` + lọc tên (TTTM, loại "Lotteria"); `amenity:bus_station` (bến xe);
+  `aeroway:aerodrome` ưu tiên "Quốc tế" + 1 cây cầu lớn (loại cầu vượt, cầu đi bộ).
+- Tiện ích người dùng nhập: ưu tiên tên khớp đúng, loại biển chỉ hướng ("Hướng đi cầu …"), không thấy trong 60 km thì bỏ.
+- Cảnh ga đặt tên **"Metro & nhà ga"** (dữ liệu OSM không cho biết tuyến đã chạy hay chưa, không khẳng định "đang chạy").
+- Tuyến từ dự án tới điểm: OSRM. Mọi lệnh gọi thử lại 3 lần có giãn cách (máy chủ công cộng hay giới hạn tốc độ).
+- Overpass (overpass-api.de) là nguồn bổ sung tùy chọn khi gọi được; hiện không bắt buộc.
+- Không tìm thấy chủ đề nào thì bỏ cảnh đó; không bịa.
 
 ## Giữ nguyên từ map-location-video
 Camera nghiêng ~40°, dự án luôn ở giữa, vùng an toàn 36px / 84px, fitFont, kiểm tra RECTS tự động, dòng ghi nguồn Esri/Maxar/OSM, ghi WebM bằng MediaRecorder, không sao chép thương hiệu/watermark của video mẫu (logo kênh, overlay "AI TỰ NHẬN RA", nút "BÌNH LUẬN: SKILL" là của người làm video mẫu, không đưa vào sản phẩm).
 
 ## Mạng cần mở
-server.arcgisonline.com, router.project-osrm.org, photon.komoot.io, overpass-api.de.
+server.arcgisonline.com, router.project-osrm.org, photon.komoot.io (cả ba có CORS `*`, gọi thẳng từ trình duyệt được, kể cả mở file:// ). overpass-api.de tùy chọn.

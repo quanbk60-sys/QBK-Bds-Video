@@ -119,7 +119,7 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
         </div>
         <label>Tiện ích muốn nhắc (không bắt buộc, mỗi dòng: loại | tên)</label>
         <textarea id="pPois" style="min-height:70px" placeholder="KẾT NỐI | Vành đai 3&#10;METRO | Ga Phùng Khoang&#10;MUA SẮM | AEON Mall Hà Đông"></textarea>
-        <p class="note">Chỉ cần tọa độ thật: agent tự tìm đại lộ, vành đai, metro, cầu, sân bay, TTTM quanh dự án và chia cảnh theo chủ đề (skill bản đồ hạ tầng). Cảnh này chạy ở backend (giai đoạn 2).</p>
+        <p class="note">Chỉ cần tọa độ thật (chuột phải trên Google Maps để copy). Khi bấm Hoàn tất, agent tự tìm ga metro, TTTM, bến xe, sân bay, cầu quanh dự án, vẽ tuyến đường trên nền vệ tinh và chia cảnh theo chủ đề. Có tọa độ thì không cần ảnh vẫn tạo được video. Cần mạng tới Esri, OSRM, Photon.</p>
       </details>
     </div>
   </section>
@@ -198,6 +198,7 @@ details summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
   </div>
 </div>
 
+<script src="map-engine.js"></script>
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
@@ -208,7 +209,7 @@ const ease=u=>{u=clamp(u);return u*u*(3-2*u);};
 const back=u=>{u=clamp(u)-1;return 1+2.70158*u*u*u+1.70158*u*u;};
 const lerp=(a,b,u)=>a+(b-a)*u;
 const FONT=(w,s)=>`${w} ${s}px "Segoe UI","Helvetica Neue",Arial,sans-serif`;
-const S={media:[],tone:'sang',cap:'top',busy:false,blob:null,url:null,stop:false};
+const S={media:[],tone:'sang',cap:'top',busy:false,blob:null,url:null,stop:false,map:null,mapKey:''};
 let X; // active 2D context (main canvas or editor canvas)
 let RECTS=[];
 
@@ -263,11 +264,13 @@ function renderThumbs(){
    if(a==='x'){S.media.splice(i,1);}else{const j=a==='l'?i-1:i+1;if(j<0||j>=S.media.length)return;[S.media[i],S.media[j]]=[S.media[j],S.media[i]];}
    renderThumbs();});
   box.appendChild(d);});
- const has=S.media.length>0;$('#btnGo').disabled=!has||S.busy;$('#btnPreview').disabled=!has||S.busy;
- $('#goHint').textContent=has?`${S.media.length} file · video khoảng ${Math.round(buildPlan().T)} giây`:'Tải lên ít nhất 1 ảnh hoặc video để bắt đầu.';
+ const has=S.media.length>0||coordsOk();$('#btnGo').disabled=!has||S.busy;$('#btnPreview').disabled=!S.media.length||S.busy;
+ $('#goHint').textContent=has?`${S.media.length} file${coordsOk()?' + cảnh bản đồ hạ tầng':''} · video khoảng ${Math.round(buildPlan().T)} giây${coordsOk()&&!S.map?' + phần bản đồ':''}`:'Tải lên ít nhất 1 ảnh/video, hoặc nhập tọa độ dự án để bắt đầu.';
  if(has)steps(S.blob?3:1);
 }
 
+function coordsOk(){const a=parseFloat($('#pLat').value),b=parseFloat($('#pLon').value);return isFinite(a)&&isFinite(b)&&Math.abs(a)<=85&&Math.abs(b)<=180;}
+['#pLat','#pLon'].forEach(id=>$(id).addEventListener('input',renderThumbs));
 /* ---------- SCRIPT ---------- */
 seg('#tone',v=>S.tone=v);seg('#capStyle',v=>S.cap=v);
 const TONES={
@@ -289,9 +292,9 @@ function sceneDur(m){const base=m.type==='video'?clamp(m.dur||4,2.5,6):3.4;const
 function buildPlan(){
  const I=info();let lines=$('#script').value.split('\n').map(s=>s.trim()).filter(Boolean);const auto=!lines.length;
  if(auto)lines=TONES[S.tone];
- const INTRO=2.6,OUT=3.2;let t=INTRO;const scenes=[];
+ const INTRO=2.6,OUT=3.2,MAPT=S.map?S.map.T:0;let t=INTRO+MAPT;const scenes=[];
  S.media.forEach((m,i)=>{const d=sceneDur(m);scenes.push({m,t0:t,d,cap:lines[i%lines.length],k:i});t+=d;});
- return{I,scenes,INTRO,OUT0:t,T:t+OUT,auto,lines,cap:S.cap};
+ return{I,scenes,INTRO,MAP1:INTRO+MAPT,OUT0:t,T:t+OUT,auto,lines,cap:S.cap,map:S.map};
 }
 
 /* ---------- DRAW HELPERS ---------- */
@@ -449,19 +452,19 @@ function captionCard(text,u,idx,total){
 function gradTop(){const g=X.createLinearGradient(0,0,0,300);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=g;X.fillRect(0,0,W,300);
  const g2=X.createLinearGradient(0,H-300,0,H);g2.addColorStop(0,'rgba(0,0,0,0)');g2.addColorStop(1,'rgba(0,0,0,.6)');X.fillStyle=g2;X.fillRect(0,H-300,W,300);}
 function intro(P,t){
- const first=P.scenes[0];if(first){drawCover(first.m,0,first.k);}
- X.fillStyle='rgba(5,8,16,.55)';X.fillRect(0,0,W,H);
- const a=ease(t/0.6);X.save();X.globalAlpha=a;X.textAlign='center';X.textBaseline='middle';
+ const first=P.scenes[0];if(P.map){P.map.renderIntro(X,t,P.INTRO,[]);}else if(first){drawCover(first.m,0,first.k);}
+ X.fillStyle=`rgba(5,8,16,${P.map?0.45*(1-ease((t-1.9)/0.7)):0.55})`;X.fillRect(0,0,W,H);
+ const a=ease(t/0.6)*(P.map?1-ease((t-2.0)/0.5):1);X.save();X.globalAlpha=a;X.textAlign='center';X.textBaseline='middle';
  const words=P.I.name.split(' ');const half=Math.ceil(words.length/2);const L=words.length>2?[words.slice(0,half).join(' '),words.slice(half).join(' ')]:[P.I.name];
  L.forEach((l,i)=>{fitFont(l,'900',62,26,W-2*M);X.fillStyle=goldGrad(400+i*72-30,400+i*72+30);X.shadowColor='rgba(0,0,0,.6)';X.shadowBlur=18;X.fillText(l,W/2,420+i*72-(L.length-1)*36+(1-a)*20);});
  X.shadowBlur=0;const by=420+(L.length-1)*36+66;
  if(P.I.area){fitFont(P.I.area,'700',20,12,W-2*M);X.fillStyle='#e6ebf5';X.fillText(P.I.area,W/2,by);}
- const hook=P.lines[0]||'';if(hook){X.globalAlpha=ease((t-0.5)/0.6);X.font=FONT('800',26);fitFont(plain(hook),'800',26,14,W-2*M);richLine(hook,W/2,by+56);}
+ const hook=P.map?'Hạ tầng quanh dự án: *'+P.map.themes.map(th=>th.title.toLowerCase()).join(' · ')+'*':(P.lines[0]||'');if(hook){X.globalAlpha=ease((t-0.5)/0.6)*(P.map?1-ease((t-2.0)/0.5):1);X.font=FONT('800',26);fitFont(plain(hook),'800',P.map?22:26,12,W-2*M);richLine(hook,W/2,by+56);}
  X.restore();X.textAlign='left';
- if(first&&t>P.INTRO-0.45){X.globalAlpha=ease((t-(P.INTRO-0.45))/0.45);drawCover(first.m,0,first.k);X.globalAlpha=1;}
+ if(!P.map&&first&&t>P.INTRO-0.45){X.globalAlpha=ease((t-(P.INTRO-0.45))/0.45);drawCover(first.m,0,first.k);X.globalAlpha=1;}
 }
 function outro(P,t){
- const last=P.scenes[P.scenes.length-1];if(last){const xf=drawCover(last.m,1,last.k);if(last.m.ov.items.length)drawOverlay(last.m,xf,99,true);}
+ const last=P.scenes[P.scenes.length-1];if(last){const xf=drawCover(last.m,1,last.k);if(last.m.ov.items.length)drawOverlay(last.m,xf,99,true);}else if(P.map)P.map.render(X,P.map.T,[]);
  RECTS=[];const u=(t-P.OUT0)/(P.T-P.OUT0);X.fillStyle=`rgba(5,8,16,${0.35+0.45*ease(u/0.3)})`;X.fillRect(0,0,W,H);
  X.save();X.globalAlpha=ease(u/0.3);X.textAlign='center';X.textBaseline='middle';
  fitFont(P.I.name,'900',48,22,W-2*M);X.fillStyle=goldGrad(370,430);X.fillText(P.I.name,W/2,400);
@@ -476,16 +479,19 @@ const cv=$('#cv'),ctx=cv.getContext('2d');
 function sceneFrame(P,sc,i,t){
  const u=(t-sc.t0)/sc.d,τ=t-sc.t0;
  if(sc.m.type==='video'&&!sc._started){sc._started=true;sc.m.el.currentTime=0;sc.m.el.play().catch(()=>{});}
+ if(i===0&&P.map&&τ<0.45){P.map.render(X,P.map.T,[]);RECTS=[];}
+ const fadeIn=i>0||P.map?ease(τ/0.45):1;
  if(i>0&&τ<0.45){const pv=P.scenes[i-1];const xf0=drawCover(pv.m,1,pv.k);if(pv.m.ov.items.length)drawOverlay(pv.m,xf0,99,true);RECTS=[];}
- const xf=drawCover(sc.m,u,sc.k,i>0?ease(τ/0.45):1);
+ const xf=drawCover(sc.m,u,sc.k,fadeIn);
  gradTop();
- if(sc.m.ov.items.length){X.save();if(i>0)X.globalAlpha=ease(τ/0.45);drawOverlay(sc.m,xf,τ,false);X.restore();}
+ if(sc.m.ov.items.length){X.save();X.globalAlpha=fadeIn;drawOverlay(sc.m,xf,τ,false);X.restore();}
  topBar(P,t);
  if(P.cap==='top')titleTop(sc.cap,u);else captionCard(sc.cap,u,i,P.scenes.length);
 }
 function RENDER(P,t){
  X=ctx;RECTS=[];X.fillStyle='#000';X.fillRect(0,0,W,H);
  if(t<P.INTRO)intro(P,t);
+ else if(t<P.MAP1){P.map.render(X,t-P.INTRO,RECTS);topBar(P,t);}
  else if(t>=P.OUT0)outro(P,t);
  else{const i=P.scenes.findIndex(s=>t<s.t0+s.d);sceneFrame(P,P.scenes[i],i,t);}
 }
@@ -556,36 +562,59 @@ function edDraw(){if(E.i<0)return;const m=S.media[E.i];X=ectx;RECTS=[];X.fillSty
  $('#edItems').innerHTML=m.ov.items.map(it=>`<li>${NAMES[it.t]}${it.label?': '+it.label:''}${it.t==='plot'&&it.len?` (${it.len}×${it.wid}m)`:''}</li>`).join('')||'<li style="list-style:none;margin-left:-18px">Chưa có đồ họa nào.</li>';
  X=ctx;}
 
+/* ---------- AGENT BẢN ĐỒ HẠ TẦNG ---------- */
+async function runMapAgent(I){
+ const L=m=>log('Bản đồ hạ tầng',m);
+ if(!coordsOk()){L('Chưa nhập tọa độ, bỏ qua cảnh bản đồ (không tự bịa vị trí).');S.map=null;ag('map','skip',1);return;}
+ const key=JSON.stringify([I.lat,I.lon,I.pois,I.name]);
+ if(S.map&&S.mapKey===key){L(`Dùng lại cảnh bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
+ if(!window.MapEngine){L('Thiếu file map-engine.js cạnh index.html.');ag('map','err');return;}
+ try{ag('map','run',.05);S.map=null;
+  L(`Tọa độ ${I.lat}, ${I.lon}. Đang tự nhận ra hạ tầng xung quanh (Photon)...`);
+  const cfg={lat:I.lat,lon:I.lon,name:I.name,pois:I.pois};
+  const found=await MapEngine.discover(cfg,L);ag('map','run',.35);
+  if(!found.length){L('Không tìm thấy hạ tầng nào quanh tọa độ này, bỏ cảnh bản đồ.');ag('map','skip',1);return;}
+  L(`Lấy tuyến đường cho ${found.length} điểm (OSRM)...`);const pois=await MapEngine.route(cfg,found,L);ag('map','run',.5);
+  if(!pois.length){L('Không lấy được tuyến nào, bỏ cảnh bản đồ.');ag('map','skip',1);return;}
+  const eng=MapEngine.build(cfg,pois);
+  L(`${eng.themes.length} cảnh: ${eng.themes.map(t=>t.title).join(' → ')} → Kết nối toàn vùng (${eng.T.toFixed(1)}s). Đang tải ảnh vệ tinh Esri...`);
+  const pf=await eng.prefetch(2.6,(d,n)=>ag('map','run',.5+.45*d/n));
+  if(pf.failed>pf.total*0.05)throw new Error(`Quá nhiều ô ảnh lỗi (${pf.failed}/${pf.total})`);
+  const cal=eng.calibrate();L(`Đã tải ${pf.total} ô ảnh vệ tinh. Dựng 1 khung mất ${cal.ms} ms${cal.step>1?' (giảm độ mịn để kịp 30fps)':''}.`);
+  S.map=eng;S.mapKey=key;ag('map','ok',1);
+ }catch(e){L('Lỗi: '+(e.message||e)+'. Kiểm tra mạng tới server.arcgisonline.com, router.project-osrm.org, photon.komoot.io.');S.map=null;ag('map','err');}
+}
+
 /* ---------- PIPELINE (Hoàn tất) ---------- */
 $('#btnPreview').onclick=async()=>{if(S.busy)return;S.busy=true;lock(true);$('#btnStop').disabled=false;await play(buildPlan(),false);S.busy=false;lock(false);$('#btnStop').disabled=true;};
 $('#btnStop').onclick=()=>{S.stop=true;};
-function lock(b){$('#btnGo').disabled=b||!S.media.length;$('#btnPreview').disabled=b||!S.media.length;}
+function lock(b){$('#btnGo').disabled=b||!(S.media.length||coordsOk());$('#btnPreview').disabled=b||!S.media.length;}
 $('#btnGo').onclick=async()=>{
- if(S.busy||!S.media.length)return;S.busy=true;lock(true);steps(2);
+ if(S.busy||!(S.media.length||coordsOk()))return;S.busy=true;lock(true);steps(2);
  AGENTS.forEach(a=>ag(a.id,'idle',0));$('#log').innerHTML='<span class="a">[hệ thống]</span> Bắt đầu job mới.';$('#btnDl').disabled=true;$('#qa').innerHTML='';
  try{
-  ag('orc','run',.3);const P=buildPlan();
+  ag('orc','run',.3);let P=buildPlan();
   log('Điều phối',`Nhận ${S.media.length} file (${S.media.filter(m=>m.type==='image').length} ảnh, ${S.media.filter(m=>m.type==='video').length} video). Giao việc cho 4 agent chạy song song.`);
   await sleep(500);ag('orc','ok',.5);
   await Promise.all([
    (async()=>{ag('med','run',0);for(let i=0;i<S.media.length;i++){const m=S.media[i];await sleep(200);
      const kind=m.type==='video'?'clip':(m.w>m.h*1.2?'ảnh ngang':m.h>m.w*1.2?'ảnh dọc':'ảnh vuông');
-     log('Phân tích media',`#${i+1} ${m.name.slice(0,26)} · ${m.w}×${m.h} · ${kind} · kiểu ${m.ov.style==='drone'?'drone phối cảnh':'vệ tinh nhìn thẳng'} · ${P.scenes[i].d.toFixed(1)}s`);ag('med','run',(i+1)/S.media.length);}
+     log('Phân tích media',`#${i+1} ${m.name.slice(0,26)} · ${m.w}×${m.h} · ${kind} · kiểu ${m.ov.style==='drone'?'drone phối cảnh':'vệ tinh nhìn thẳng'} · ${sceneDur(m).toFixed(1)}s`);ag('med','run',(i+1)/S.media.length);}
      ag('med','ok',1);})(),
    (async()=>{ag('wri','run',.2);await sleep(700);
      if(P.auto)log('Biên kịch',`Không có kịch bản, tự viết ${P.lines.length} dòng giọng "${document.querySelector('#tone .on').textContent}". Hook: "${plain(P.lines[0])}"`);
      else log('Biên kịch',`Dùng kịch bản người dùng: ${P.lines.length} dòng, gán cho ${P.scenes.length} cảnh.`);
      log('Biên kịch',`Kiểu chữ: ${P.cap==='top'?'tiêu đề trên, chữ trong *...* tô vàng':'thẻ dưới'}.`);
      ag('wri','ok',1);})(),
-   (async()=>{ag('map','run',.3);await sleep(450);
-     if(isFinite(P.I.lat)&&isFinite(P.I.lon)){log('Bản đồ hạ tầng',`Có tọa độ ${P.I.lat}, ${P.I.lon}. Cảnh tự nhận ra hạ tầng (Ngay cửa nhà / Metro / Cầu & sân bay) chạy ở backend (giai đoạn 2), bản xem trước bỏ qua.`);}
-     else log('Bản đồ hạ tầng','Chưa nhập tọa độ, bỏ qua cảnh bản đồ (không tự bịa vị trí).');ag('map','skip',1);})(),
+   runMapAgent(P.I),
    (async()=>{ag('ovl','run',.2);await sleep(550);const n=S.media.reduce((a,m)=>a+m.ov.items.length,0);
      if(!n){log('Đồ họa','Chưa có ghim/đường nào. Bấm "✎ Ghim" trên ảnh để thêm ghim, đường neon, lô đất, thẻ ảnh.');ag('ovl','skip',1);return;}
      S.media.forEach((m,i)=>{if(!m.ov.items.length)return;const c={};m.ov.items.forEach(it=>c[NAMES[it.t]]=(c[NAMES[it.t]]||0)+1);
       log('Đồ họa',`Cảnh ${i+1} (${m.ov.style==='drone'?'neon drone':'vệ tinh'}): `+Object.entries(c).map(([k,v])=>`${v} ${k.toLowerCase()}`).join(', '));});
      ag('ovl','ok',1);})()
   ]);
+  P=buildPlan();
+  if(!P.scenes.length&&!P.map)throw new Error('Không có ảnh/video và cảnh bản đồ không dựng được, chưa đủ dữ liệu để tạo video.');
   ag('orc','run',.8);log('Điều phối',`Gộp kết quả: ${P.scenes.length} cảnh, tổng ${P.T.toFixed(1)}s. Chuyển sang Dựng hình.`);await sleep(300);ag('orc','ok',1);
   ag('cmp','run',0);log('Dựng hình','Ghi video 576×1024 · 30fps theo thời gian thực...');
   const R=await play(P,true);ag('cmp','ok',1);
@@ -597,6 +626,7 @@ $('#btnGo').onclick=async()=>{
   checks.push([R.late<=3,`Khung trễ: ${R.late}${R.late>3?' (nên dựng lại, giữ tab hiển thị)':''}`]);
   checks.push([R.blob.size>300e3,`Dung lượng: ${(R.blob.size/1e6).toFixed(1)} MB`]);
   checks.push([P.T<=90,`Thời lượng: ${P.T.toFixed(1)}s ${P.T>60?'(dài cho Reels/TikTok)':''}`]);
+  if(P.map)checks.push([true,'Cảnh bản đồ có dòng ghi nguồn Esri, Maxar, OpenStreetMap']);
   checks.push([!!$('#pName').value.trim(),$('#pName').value.trim()?'Đã có tên dự án':'Chưa nhập tên dự án, đang dùng chữ mặc định']);
   checks.forEach(c=>log('Kiểm duyệt',(c[0]?'✔ ':'⚠ ')+c[1]));
   $('#qa').innerHTML=checks.map(c=>`<li class="${c[0]?'pass':'fail'}">${c[0]?'✔':'⚠'} ${c[1]}</li>`).join('');
