@@ -147,7 +147,16 @@ try {
   const tmp = path.join(os.tmpdir(), `map-${Date.now()}.webm`);
   fs.writeFileSync(tmp, Buffer.from(res.webm, "base64"));
   execFileSync("ffmpeg", ["-y", "-v", "error", "-fflags", "+genpts", "-i", tmp, "-vf", "fps=30,format=yuv420p",
-    "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-movflags", "+faststart", "-an", outFile]);
+    "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-movflags", "+faststart", "-an", outFile]);
+  // kho asset của app nhận tối đa 20 MB: quá 17 MB thì nén lại theo bitrate vừa đủ (chừa chỗ cho rãnh tiếng)
+  const LIMIT = 17e6, durS = (res.TI || 0) + res.T + 8;
+  if (fs.statSync(outFile).size > LIMIT) {
+    const kbps = Math.floor((LIMIT * 8 / durS) / 1000) - 160, small = outFile + ".small.mp4";
+    execFileSync("ffmpeg", ["-y", "-v", "error", "-fflags", "+genpts", "-i", tmp, "-vf", "fps=30,format=yuv420p", "-c:v", "libx264", "-preset", "veryfast",
+      "-b:v", kbps + "k", "-maxrate", kbps + "k", "-bufsize", 2 * kbps + "k", "-movflags", "+faststart", "-an", small]);
+    fs.renameSync(small, outFile);
+    console.log(`Nén lại video ${kbps} kbps để vừa giới hạn tải lên.`);
+  }
   fs.rmSync(tmp, { force: true });
   delete res.webm;
   if (voice) { // ghép lời đọc vào rãnh tiếng của video bản đồ; câu shot=-1 nói tiếp sau bản đồ (lúc app chiếu ảnh/flycam)
