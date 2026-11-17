@@ -1034,13 +1034,20 @@ async function runMapViaCloud(I,L){
    L('Gửi việc cho máy chủ dựng bản đồ (tìm hạ tầng, tải ảnh vệ tinh, vẽ tuyến). Thường mất 3–6 phút...');
    await mcp.callTool('Claude Code Remote','fire_trigger',{trigger_id:MAP_TRIGGER,text:'mapJobs/'+id});
   }else L('Máy chủ đang dựng bản đồ cho vị trí này, chờ tiếp...');
-  d=await new Promise((res,rej)=>{let un=()=>{},last='';
-   const to=setTimeout(()=>{un();rej(new Error('quá 15 phút chưa nhận được video bản đồ, thử bấm Hoàn tất lại'));},15*60e3);
+  d=await new Promise((res,rej)=>{let un=()=>{},last='',cur=null,seen=Date.now(),refire=0,t0=Date.now();
+   const stop=()=>{clearTimeout(to);clearInterval(wd);un();};
+   const to=setTimeout(()=>{stop();rej(new Error('quá 25 phút chưa nhận được video bản đồ, thử bấm Hoàn tất lại'));},25*60e3);
+   // tự gọi lại máy chủ nếu lần chạy trước không nhận việc (3 phút vẫn "moi") hoặc đứng im quá 12 phút
+   const wd=setInterval(async()=>{if(!cur||!mcp||refire>=2)return;const idle=(Date.now()-seen)/6e4;
+    if((cur.status==='moi'&&idle>3)||(cur.status==='dang-lam'&&idle>12)){refire++;seen=Date.now();
+     L(`Máy chủ chưa phản hồi, gọi lại (lần ${refire})...`);
+     try{await ref.set({...cur,status:'moi',step:'Chờ máy chủ nhận việc',updatedAt:now()});await mcp.callTool('Claude Code Remote','fire_trigger',{trigger_id:MAP_TRIGGER,text:'mapJobs/'+id});}catch(e){L('Chưa gọi lại được máy chủ ('+errText(e)+').');}}},30e3);
    un=ref.onSnapshot(s=>{const x=s.data();if(!x)return;
+    if(!cur||x.step!==cur.step||x.progress!==cur.progress||x.status!==cur.status)seen=Date.now();cur=x;
     if(x.step&&x.step!==last){last=x.step;L(x.step);}ag('map','run',Math.max(.05,Math.min(.95,+x.progress||.2)));
-    if(x.status==='xong'&&x.video){clearTimeout(to);un();res(x);}
-    else if(x.status==='loi'){clearTimeout(to);un();rej(new Error(x.error||'máy chủ báo lỗi'));}},
-    e=>{clearTimeout(to);rej(new Error('mất kết nối cơ sở dữ liệu ('+(e&&e.code)+')'));});});
+    if(x.status==='xong'&&x.video){stop();res(x);}
+    else if(x.status==='loi'){stop();rej(new Error(x.error||'máy chủ báo lỗi'));}},
+    e=>{stop();rej(new Error('mất kết nối cơ sở dữ liệu ('+(e&&e.code)+')'));});});
  }
  const pl=d.meta&&d.meta.place;if(pl)L(`Vị trí dùng để dựng: ${(+pl.lat).toFixed(5)}, ${(+pl.lon).toFixed(5)}${pl.label?' ('+pl.label+')':''}.`);
  const url='/_blob/'+encodeURIComponent(d.video);S.voice=null;
