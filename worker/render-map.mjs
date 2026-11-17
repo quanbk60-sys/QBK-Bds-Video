@@ -10,6 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { synthesize, mixTrack, ttsAvailable } from "../server/tts.js";
+import { findPlusCode, decodeFull, recoverNearest } from "./pluscode.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // Playwright + Chromium cài sẵn trong máy chủ đám mây (nạp qua require để dùng bản toàn cục).
@@ -60,8 +61,17 @@ async function resolvePoint(job) {
     if (!query) throw new Error("Link Google Maps không chứa vị trí. Hãy dán tọa độ hoặc địa chỉ.");
   }
   if (!query) throw new Error("Chưa có vị trí dự án.");
-  const u = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&bbox=102.1,8.2,109.6,23.4`;
-  const f = JSON.parse(curl([u])).features?.[0];
+  const photon = (q) => JSON.parse(curl([`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1&bbox=102.1,8.2,109.6,23.4`])).features?.[0];
+  // Mã Plus Code của Google ("XQVM+WCM Cái Răng, Cần Thơ" hoặc "7P28XQVM+WCM"): giải mã ra tọa độ.
+  const pc = findPlusCode(query);
+  if (pc) {
+    if (pc.full) return { ...decodeFull(pc.code), how: "Plus Code", label: query };
+    const ref = pc.rest && photon(pc.rest);
+    if (!ref) throw new Error(`Mã Plus Code "${pc.code}" cần kèm tên quận/tỉnh (ví dụ "${pc.code} Cái Răng, Cần Thơ"), hoặc dán tọa độ.`);
+    const [rlon, rlat] = ref.geometry.coordinates;
+    return { ...recoverNearest(pc.code, rlat, rlon), how: "Plus Code", label: pc.rest };
+  }
+  const f = photon(query);
   if (!f) throw new Error(`Không tìm thấy "${query}" trên bản đồ. Hãy dán tọa độ hoặc link Google Maps.`);
   const p = f.properties || {};
   const label = [p.name, p.street, p.district || p.city, p.state].filter(Boolean).join(", ");
