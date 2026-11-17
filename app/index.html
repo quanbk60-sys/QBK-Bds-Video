@@ -335,7 +335,7 @@ const back=u=>{u=clamp(u)-1;return 1+2.70158*u*u*u+1.70158*u*u;};
 const lerp=(a,b,u)=>a+(b-a)*u;
 const FONT=(w,s,it)=>`${it?'italic ':''}${w} ${s}px "Montserrat","Be Vietnam Pro","Segoe UI","Helvetica Neue",Arial,sans-serif`;
 const S={media:[],tone:'sang',cap:'top',busy:false,blob:null,url:null,stop:false,map:null,mapKey:'',ai:null,aiKey:''};
-const SRV={on:false,claude:false,ffmpeg:false};
+const SRV={on:false,claude:false,ffmpeg:false,tts:false};
 // Chạy trong trang Artifact của claude.ai: AI qua capability `sample`, lưu file qua `downloads`, mạng ngoài bị chặn.
 const IN_ARTIFACT=typeof window.claude?.use==='function';
 const AIX={sample:null,maxImg:0,dl:null};
@@ -789,21 +789,25 @@ function RENDER(P,t){
 async function play(P,record){
  S.media.forEach(m=>{if(m.type==='video')m.el.pause();});P.scenes.forEach(s=>s._started=false);
  $('#ph').style.display='none';const old=$('#phone video');if(old)old.remove();cv.style.display='block';
- let rec,chunks=[],done;
- let mus=null;
- if(record){const stream=cv.captureStream(FPS);
-  if(S.music&&S.actx){try{const ac=S.actx;await ac.resume();const src=ac.createBufferSource();src.buffer=S.music;src.loop=true;const g=ac.createGain();const dst=ac.createMediaStreamDestination();
-    const v=Math.max(0,Math.min(1.5,$('#vol').value/100)),t0a=ac.currentTime;g.gain.setValueAtTime(0,t0a);g.gain.linearRampToValueAtTime(v,t0a+0.6);g.gain.setValueAtTime(v,t0a+Math.max(0.7,P.T-1.5));g.gain.linearRampToValueAtTime(0,t0a+P.T);
-    src.connect(g).connect(dst);stream.addTrack(dst.stream.getAudioTracks()[0]);mus={src,ac};}catch(e){log('Dựng hình','Không trộn được nhạc nền: '+e.message);}}
+ let rec,chunks=[],done;const srcs=[];
+ // tiếng: lời đọc + nhạc nền (nhạc nhỏ lại khi có lời) trộn vào một rãnh; xem nhanh thì phát ra loa
+ if((S.music||S.voice)&&S.actx){try{const ac=S.actx;await ac.resume();const out=record?ac.createMediaStreamDestination():ac.destination;const t0a=ac.currentTime+0.05;
+   if(S.voice){const vs=ac.createBufferSource();vs.buffer=S.voice.buf;vs.connect(out);srcs.push([vs,t0a]);}
+   if(S.music){const src=ac.createBufferSource();src.buffer=S.music;src.loop=true;const g=ac.createGain();const v=Math.max(0,Math.min(1.5,$('#vol').value/100))*(S.voice?0.28:1);
+    g.gain.setValueAtTime(0,t0a);g.gain.linearRampToValueAtTime(v,t0a+0.6);g.gain.setValueAtTime(v,t0a+Math.max(0.7,P.T-1.5));g.gain.linearRampToValueAtTime(0,t0a+P.T);src.connect(g).connect(out);srcs.push([src,t0a]);}
+   if(record)S._aout=out;}catch(e){log('Dựng hình','Không trộn được tiếng: '+e.message);}}
+ if(record){const stream=cv.captureStream(FPS);if(S._aout){stream.addTrack(S._aout.stream.getAudioTracks()[0]);S._aout=null;}
   const opt={videoBitsPerSecond:8e6};if(REC_MIME)opt.mimeType=REC_MIME;
-  rec=new MediaRecorder(stream,opt);rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};done=new Promise(r=>rec.onstop=r);rec.start(250);if(mus)mus.src.start();}
+  rec=new MediaRecorder(stream,opt);rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};done=new Promise(r=>rec.onstop=r);rec.start(250);}
+ srcs.forEach(([x,t])=>x.start(t));
  const N=Math.round(P.T*FPS),t0=performance.now();let late=0,maxMs=0;S.stop=false;S.playing=true;
  for(let i=0;i<N&&!S.stop;i++){const a=performance.now();RENDER(P,i/FPS);maxMs=Math.max(maxMs,performance.now()-a);
   if(record&&i%15===0)ag('cmp','run',i/N);
   const wait=t0+(i+1)*1000/FPS-performance.now();if(wait>0)await sleep(wait);else{late++;await sleep(0);}}
  S.playing=false;S.media.forEach(m=>{if(m.type==='video')m.el.pause();});if(P.map&&P.map.video)P.map.video.pause();
- if(record){await sleep(300);rec.stop();await done;if(mus)try{mus.src.stop();}catch(e){}return{blob:new Blob(chunks,{type:(REC_MIME||'video/webm').split(';')[0]}),late,maxMs,elapsed:(performance.now()-t0)/1000};}
- return{late,maxMs};
+ const stopAll=()=>srcs.forEach(([x])=>{try{x.stop();}catch(e){}});
+ if(record){await sleep(300);rec.stop();await done;stopAll();return{blob:new Blob(chunks,{type:(REC_MIME||'video/webm').split(';')[0]}),late,maxMs,elapsed:(performance.now()-t0)/1000};}
+ stopAll();return{late,maxMs};
 }
 
 /* ---------- EDITOR ---------- */
@@ -871,7 +875,7 @@ async function checkServer(){
   $('#res').options[2].textContent='576 × 1024';$('#expNote').textContent=`Video ghi ${vfmt} ngay trên trang (kèm nhạc nền nếu có). Giữ trang mở khi dựng. Bấm Tải video, claude.ai sẽ hỏi lưu file.`;
   return;}
  if(!/^https?:$/.test(location.protocol)){el.innerHTML=`Chạy không máy chủ · <i>AI tắt</i> · Video: ${vfmt}`;return;}
- try{const r=await fetch('/api/health');const j=await r.json();Object.assign(SRV,{on:true,claude:!!j.claude,ffmpeg:!!j.ffmpeg});
+ try{const r=await fetch('/api/health');const j=await r.json();Object.assign(SRV,{on:true,claude:!!j.claude,ffmpeg:!!j.ffmpeg,tts:!!j.tts});
   el.innerHTML=`Agent AI: ${SRV.claude?'<b>bật</b>':'<i>tắt (thiếu khóa API)</i>'} · MP4: ${SRV.ffmpeg?'<b>bật</b>':'<i>tắt</i>'}`;
   if(SRV.ffmpeg){const f=$('#fmt');f.options[0].disabled=false;f.options[0].textContent='MP4 H.264';f.value='mp4';const r2=$('#res');[...r2.options].forEach(o=>o.disabled=false);r2.value='1080';
    $('#expNote').textContent='Video ghi theo thời gian thực trong trình duyệt (kèm nhạc nền nếu có), rồi máy chủ chuyển sang MP4 độ phân giải cao. Giữ tab mở khi dựng.';}
@@ -975,6 +979,7 @@ async function runMediaAgent(){
  }catch(e){L('Claude lỗi ('+errText(e)+'), dùng phân tích cơ bản.');local();}}
 async function runWriterAgent(){
  const L=msg=>log('Biên kịch',msg);ag('wri','run',.2);
+ if(styled()){const st=ST();L(`Phong cách "${st.name}": không có chữ từng cảnh như video mẫu.${st.title?' Tiêu đề: '+plain($('#pTitle').value.trim()||'(tự đặt theo tên dự án)')+'.':''}${st.voice?($('#voiceOn').checked?' Lời đọc viết từ dữ liệu bản đồ và thông tin lô đất (agent Bản đồ làm cùng lúc).':' Đã tắt lời đọc.'):' Không lời, chỉ nhạc.'}`);ag('wri','ok',1);return;}
  const userScript=$('#script').value.trim();const toneName=document.querySelector('#tone .on').textContent;
  if(aiMode()&&S.media.length){
   if(S.ai&&S.aiKey===aiKey())L('Dùng lại kịch bản AI đã viết.');
@@ -996,7 +1001,7 @@ async function runVisualQA(P){
   if(!out.issues.length){log('Kiểm duyệt','✔ Claude không thấy lỗi trình bày.');return [[true,'Claude xem khung hình: không thấy lỗi']];}
   return out.issues.map(x=>{const bad=x.severity!=='low';log('Kiểm duyệt',`${bad?'⚠':'•'} ${x.time.toFixed(1)}s: ${x.problem} → ${x.fix}`);return [!bad,`${x.time.toFixed(1)}s: ${x.problem} (gợi ý: ${x.fix})`];});
  }catch(e){log('Kiểm duyệt','Không gọi được Claude ('+errText(e)+'), chỉ dùng kiểm tra tự động.');return [];}}
-checkServer();
+checkServer();renderStyles();
 $('#btnNext1').onclick=()=>{steps(1);goStep(2);};
 $('#btnNext3').onclick=()=>goStep(4);
 $('#btnNew').onclick=()=>{if(S.busy)return;S.media=[];S.ai=null;S.map=null;renderThumbs();$('#script').value='';goStep(1);};
@@ -1008,7 +1013,7 @@ const MAP_TRIGGER='trig_01XbZxViW3JSyAuEDusc9yB6'; // id tác vụ đám mây "Q
 const hashStr=t=>{let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);};
 function videoMap(url,meta){return new Promise((res,rej)=>{
  const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';
- const TI=+meta.TI||2.6,T=+meta.T;
+ const TI=meta.TI!=null?+meta.TI:2.6,T=+meta.T;
  const at=(X,tt)=>{tt=Math.max(0,Math.min(tt,TI+T-0.05));if(Math.abs(v.currentTime-tt)>0.35){try{v.currentTime=tt;}catch(e){}}
   if(S.playing){if(v.paused)v.play().catch(()=>{});}else if(!v.paused)v.pause();
   if(v.readyState>=2)X.drawImage(v,0,0,W,H);else{X.fillStyle='#0a0f1c';X.fillRect(0,0,W,H);}};
@@ -1017,13 +1022,13 @@ function videoMap(url,meta){return new Promise((res,rej)=>{
 async function runMapViaCloud(I,L){
  const [db,mcp]=await Promise.all([window.claude.use('db'),window.claude.use('mcp')]);
  if(!db)throw new Error('trang chưa dùng được cơ sở dữ liệu của claude.ai (cần đăng nhập)');
- const id='m'+hashStr(JSON.stringify([I.loc,I.pois,I.name]));const ref=db.doc('mapJobs/'+id);
+ const mc=mapCfg(I);const id='m'+hashStr(JSON.stringify([I.loc,I.pois,I.name,mc]));const ref=db.doc('mapJobs/'+id);
  const now=()=>new Date().toISOString();const age=x=>(Date.now()-Date.parse(x.updatedAt||x.createdAt||0))/6e4;
  let d=(await ref.get()).data();
  if(d&&d.status==='xong'&&d.video){L('Vị trí này đã có video bản đồ, dùng lại.');}
  else{
   if(!d||d.status==='loi'||age(d)>20){
-   const lc=I.loc||{};await ref.set({lat:isFinite(lc.lat)?lc.lat:null,lon:isFinite(lc.lon)?lc.lon:null,url:lc.url||'',query:lc.query||'',name:I.name,pois:I.pois.map(([cat,name])=>({cat,name})),status:'moi',step:'Chờ máy chủ nhận việc',progress:0.1,createdAt:now(),updatedAt:now()});
+   const lc=I.loc||{};await ref.set({lat:isFinite(lc.lat)?lc.lat:null,lon:isFinite(lc.lon)?lc.lon:null,url:lc.url||'',query:lc.query||'',name:I.name,pois:I.pois.map(([cat,name])=>({cat,name})),style:mc.style,facts:mc.facts,radiusMin:mc.radiusMin,radiusKm:mc.radiusKm,voice:mc.voice,status:'moi',step:'Chờ máy chủ nhận việc',progress:0.1,createdAt:now(),updatedAt:now()});
    if(!MAP_TRIGGER)throw new Error('máy chủ dựng bản đồ chưa được bật (đang chờ tạo tác vụ)');
    if(!mcp)throw new Error('trang chưa được phép gọi máy chủ (kết nối Claude Code Remote)');
    L('Gửi việc cho máy chủ dựng bản đồ (tìm hạ tầng, tải ảnh vệ tinh, vẽ tuyến). Thường mất 3–6 phút...');
@@ -1038,21 +1043,51 @@ async function runMapViaCloud(I,L){
     e=>{clearTimeout(to);rej(new Error('mất kết nối cơ sở dữ liệu ('+(e&&e.code)+')'));});});
  }
  const pl=d.meta&&d.meta.place;if(pl)L(`Vị trí dùng để dựng: ${(+pl.lat).toFixed(5)}, ${(+pl.lon).toFixed(5)}${pl.label?' ('+pl.label+')':''}.`);
- return videoMap('/_blob/'+encodeURIComponent(d.video),d.meta||{});}
+ const url='/_blob/'+encodeURIComponent(d.video);S.voice=null;
+ if(d.meta&&d.meta.voice&&mc.voice){try{const ac=actx();const buf=await ac.decodeAudioData(await (await fetch(url)).arrayBuffer());S.voice={buf,end:+d.meta.voice.end||buf.duration};L(`Có lời đọc ${S.voice.end.toFixed(1)}s.`);}catch(e){L('Không đọc được rãnh lời đọc ('+errText(e)+').');}}
+ S.voice0=S.voice;return videoMap(url,d.meta||{});}
 
+const wantVoice=()=>!!ST().voice&&$('#voiceOn').checked;
+const mapCfg=I=>({name:I.name,style:ST().map,facts:facts(),radiusMin:radiusMin(),radiusKm:+(radiusMin()*0.32).toFixed(2),voice:wantVoice()});
+// ghép các câu đọc thành một AudioBuffer theo mốc thời gian
+function voiceTrack(ac,items,end){const sr=ac.sampleRate,buf=ac.createBuffer(1,Math.ceil((end+0.5)*sr),sr),out=buf.getChannelData(0);
+ for(const it of items){const d=it.buf.getChannelData(0),o=Math.round(it.t*sr);for(let i=0;i<d.length&&o+i<out.length;i++)out[o+i]+=d[i];}return buf;}
+const actx=()=>{S.actx=S.actx||new (window.AudioContext||window.webkitAudioContext)();return S.actx;};
+async function runStyledLocal(I,L){
+ const cfg={lat:I.lat,lon:I.lon,pois:I.pois,...mapCfg(I)};
+ L(`Phong cách "${ST().name}". Tọa độ ${I.lat}, ${I.lon}. Đang tìm tiện ích, điểm mốc, tên đường${cfg.style==='quyhoach'?', ranh giới xã/tỉnh':''}...`);
+ const data=await MapStyles.gather(cfg,L);ag('map','run',.35);
+ const say=MapStyles.narration(cfg,data);const durs=[];let voiceItems=null;
+ if(say.length&&cfg.voice){say.forEach(x=>L('Lời đọc: '+x.text));
+  if(SRV.tts){try{L('Máy chủ đang đọc thành tiếng...');const r=await api('/api/tts',{texts:say.map(x=>MapStyles.ttsText(x.text)),preset:ST().voice});const ac=actx();
+    voiceItems=[];for(const [i,it] of r.items.entries()){const b=Uint8Array.from(atob(it.wav),c=>c.charCodeAt(0)).buffer;voiceItems.push({buf:await ac.decodeAudioData(b),dur:it.dur,shot:say[i].shot});}
+    voiceItems.forEach(v=>{if(v.shot>=0)durs[v.shot]=(durs[v.shot]||0)+v.dur+0.15;});}
+   catch(e){L('Chưa đọc được thành tiếng ('+errText(e)+'), dựng không lời.');voiceItems=null;}}
+  else L('Máy chủ chưa có giọng đọc (cài: pip install piper-tts), dựng không lời.');}
+ const eng=MapStyles.build(cfg,data,durs);ag('map','run',.5);
+ L(`${eng.shots.length} cảnh bản đồ (${eng.T.toFixed(1)}s). Đang tải ảnh nền Esri...`);
+ const pf=await eng.prefetch((d,n)=>ag('map','run',.5+.45*d/n));if(pf.failed>pf.total*0.05)throw new Error(`Quá nhiều ô ảnh lỗi (${pf.failed}/${pf.total})`);
+ if(voiceItems){const ac=actx(),items=[],used={};let tt=eng.T+0.4;
+  voiceItems.forEach(v=>{if(v.shot>=0&&eng.shots[v.shot]){items.push({buf:v.buf,t:eng.shots[v.shot].t0+0.3+(used[v.shot]||0)});used[v.shot]=(used[v.shot]||0)+v.dur+0.15;}});
+  voiceItems.forEach(v=>{if(v.shot<0){items.push({buf:v.buf,t:tt});tt+=v.dur+0.35;}});
+  S.voice={buf:voiceTrack(ac,items,tt),end:tt};L(`Lời đọc ${say.length} câu, dài ${tt.toFixed(1)}s.`);}
+ return eng;}
 async function runMapAgent(I){
- const L=m=>log('Bản đồ hạ tầng',m);
+ const L=m=>log('Bản đồ hạ tầng',m);S.voice=null;
+ if(S.style==='neon'&&S.media.length){L('Phong cách Drone neon: có ảnh/clip flycam nên không chèn cảnh bản đồ (giống video mẫu 1).');S.map=null;ag('map','skip',1);return;}
  if(!coordsOk()){L('Chưa nhập vị trí dự án nên không có cảnh bản đồ. Nhập vị trí ở bước 1 để có cảnh này.');S.map=null;ag('map','skip',1);return;}
- if(IN_ARTIFACT){const key=JSON.stringify([I.loc,I.pois,I.name]);
-  if(S.map&&S.mapKey===key){L(`Dùng lại video bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
+ if(IN_ARTIFACT){const key=JSON.stringify([I.loc,I.pois,I.name,mapCfg(I)]);
+  if(S.map&&S.mapKey===key){S.voice=S.voice0||null;L(`Dùng lại video bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
   try{ag('map','run',.05);S.map=null;S.map=await runMapViaCloud(I,L);S.mapKey=key;
-   L(`Đã nhận video bản đồ: ${S.map.themes.map(t=>t.title).join(' → ')} → Kết nối toàn vùng (${S.map.T.toFixed(1)}s).`);ag('map','ok',1);}
+   L(`Đã nhận video bản đồ: ${S.map.themes.map(t=>t.title).join(', ')} (${S.map.T.toFixed(1)}s)${S.voice?', có lời đọc '+S.voice.end.toFixed(1)+'s':''}.`);ag('map','ok',1);}
   catch(e){L('Chưa dựng được cảnh bản đồ: '+errText(e));S.map=null;ag('map','err');}
   return;}
  if(!isFinite(I.lat)){L('Bản chạy trên máy cần tọa độ hoặc link Google Maps đầy đủ có tọa độ (dạng @10.87,106.73).');S.map=null;ag('map','skip',1);return;}
- const key=JSON.stringify([I.lat,I.lon,I.pois,I.name]);
- if(S.map&&S.mapKey===key){L(`Dùng lại cảnh bản đồ đã dựng (${S.map.themes.length} chủ đề).`);ag('map','ok',1);return;}
- if(!window.MapEngine){L('Thiếu file map-engine.js cạnh index.html.');ag('map','err');return;}
+ const key=JSON.stringify([I.lat,I.lon,I.pois,I.name,mapCfg(I)]);
+ if(S.map&&S.mapKey===key){S.voice=S.voice0||null;L(`Dùng lại cảnh bản đồ đã dựng.`);ag('map','ok',1);return;}
+ if(!window.MapEngine||!window.MapStyles){L('Thiếu file map-engine.js / map-styles.js cạnh index.html.');ag('map','err');return;}
+ if(styled()){try{ag('map','run',.05);S.map=null;S.map=await runStyledLocal(I,L);S.voice0=S.voice;S.mapKey=key;ag('map','ok',1);}
+  catch(e){L('Lỗi: '+(e.message||e));S.map=null;ag('map','err');}return;}
  try{ag('map','run',.05);S.map=null;
   L(`Tọa độ ${I.lat}, ${I.lon}. Đang tự nhận ra hạ tầng xung quanh (Photon)...`);
   const cfg={lat:I.lat,lon:I.lon,name:I.name,pois:I.pois};
@@ -1075,7 +1110,7 @@ $('#btnStop').onclick=()=>{S.stop=true;};
 function lock(b){$('#btnGo').disabled=b||!(S.media.length||coordsOk());$('#btnPreview').disabled=b||!S.media.length;}
 $('#btnGo').onclick=async()=>{
  if(S.busy||!(S.media.length||coordsOk()))return;S.busy=true;
- const mf=$('#music').files[0];S.music=null;if(mf){try{S.actx=S.actx||new (window.AudioContext||window.webkitAudioContext)();S.actx.resume();}catch(e){}}lock(true);goStep(3);$('#t3').textContent='Đang dựng video…';$('#btnNext3').disabled=true;$('#btnNext3').textContent='Đang dựng…';
+ const mf=$('#music').files[0];S.music=null;if(mf||ST().voice){try{S.actx=S.actx||new (window.AudioContext||window.webkitAudioContext)();S.actx.resume();}catch(e){}}lock(true);goStep(3);$('#t3').textContent='Đang dựng video…';$('#btnNext3').disabled=true;$('#btnNext3').textContent='Đang dựng…';
  AGENTS.forEach(a=>ag(a.id,'idle',0));$('#log').innerHTML='<span class="a">[hệ thống]</span> Bắt đầu job mới.';$('#btnDl').disabled=true;$('#qa').innerHTML='';
  try{
   ag('orc','run',.3);let P=buildPlan();
@@ -1087,7 +1122,7 @@ $('#btnGo').onclick=async()=>{
    (async()=>{ag('ovl','run',.2);await sleep(550);const n=S.media.reduce((a,m)=>a+m.ov.items.length,0);
      if(!n){log('Đồ họa','Chưa có ghim/đường nào. Bấm "✎ Ghim" trên ảnh để thêm ghim, đường neon, lô đất, thẻ ảnh.');ag('ovl','skip',1);return;}
      S.media.forEach((m,i)=>{if(!m.ov.items.length)return;const c={};m.ov.items.forEach(it=>c[NAMES[it.t]]=(c[NAMES[it.t]]||0)+1);
-      log('Đồ họa',`Cảnh ${i+1} (${m.ov.style==='drone'?'neon drone':'vệ tinh'}): `+Object.entries(c).map(([k,v])=>`${v} ${k.toLowerCase()}`).join(', '));});
+      log('Đồ họa',`Cảnh ${i+1} (${styled()?ST().name:m.ov.style==='drone'?'neon drone':'vệ tinh'}): `+Object.entries(c).map(([k,v])=>`${v} ${k.toLowerCase()}`).join(', '));});
      ag('ovl','ok',1);})()
   ]);
   if(mf&&S.actx){try{S.music=await S.actx.decodeAudioData(await mf.arrayBuffer());log('Dựng hình',`Nhạc nền: ${mf.name} (${S.music.duration.toFixed(0)}s, tự lặp và nhỏ dần ở cuối).`);}catch(e){log('Dựng hình','Không đọc được file nhạc, dựng không có nhạc.');}}

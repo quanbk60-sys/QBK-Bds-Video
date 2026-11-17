@@ -14,4 +14,7 @@ const dir = path.join(root, "dist/artifact");
 fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(path.join(dir, "index.html"), out);
 fs.copyFileSync(path.join(root, "app/map-engine.js"), path.join(dir, "map-engine.js"));
+fs.copyFileSync(path.join(root, "app/map-styles.js"), path.join(dir, "map-styles.js"));
+fs.mkdirSync(path.join(dir, "previews"), { recursive: true });
+for (const f of fs.readdirSync(path.join(root, "app/previews"))) fs.copyFileSync(path.join(root, "app/previews", f), path.join(dir, "previews", f));
 console.log("dist/artifact/index.html", out.length, "bytes");

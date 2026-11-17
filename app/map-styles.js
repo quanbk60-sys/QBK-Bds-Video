@@ -64,7 +64,7 @@ async function gather(cfg,log){
  d.far.sort((a,b)=>a.km-b.km);
  log(d.far.length?`Điểm mốc: ${d.far.map(p=>p.name+' ('+fmtKm(p.km)+')').join(', ')}`:'Không thấy điểm mốc xa.');
  // 3) đường: tên đường mặt tiền (OSRM nearest) + các tuyến từ dự án tới điểm mốc (tên từng đoạn)
- try{const j=await getJSON(`https://router.project-osrm.org/nearest/v1/driving/${P.lon},${P.lat}?number=3`);const w=(j.waypoints||[]).find(x=>x.name&&x.distance<120);if(w)d.front=w.name.replace(/^đường\s+/i,'');}catch(e){}
+ try{const j=await getJSON(`https://router.project-osrm.org/nearest/v1/driving/${P.lon},${P.lat}?number=3`);const w=(j.waypoints||[]).find(x=>x.name&&x.distance<120&&!/^cầu\s/i.test(x.name));if(w)d.front=w.name.replace(/^đường\s+/i,'');}catch(e){}
  const roadMap=new Map();
  const targets=[...d.far.slice(0,4),...d.near.slice(0,2)];
  for(const p of targets){try{const j=await getJSON(`https://router.project-osrm.org/route/v1/driving/${P.lon},${P.lat};${p.lon},${p.lat}?overview=full&geometries=geojson&steps=true`);
@@ -73,7 +73,7 @@ async function gather(cfg,log){
     if(n&&st.distance>120&&acc<4500){const o=roadMap.get(n)||{name:n,len:0,pts:[],first:acc};o.len+=st.distance;if(o.pts.length<400)o.pts.push(...g);o.first=Math.min(o.first,acc);roadMap.set(n,o);}acc+=st.distance;}
   }catch(e){log(`Không lấy được tuyến tới ${p.name}: ${e.message}`);}await sleep(100);}
  d.roads=[...roadMap.values()].sort((a,b)=>a.first-b.first||b.len-a.len).slice(0,6);
- if(!d.front&&d.roads[0])d.front=d.roads[0].name;
+ if(!d.front){const r=d.roads.find(r=>!/^cầu\s/i.test(r.name));if(r)d.front=r.name;}
  d.mainRoad=d.roads.find(r=>/quốc lộ|ql|tỉnh lộ|đt\s?\d|đại lộ|xa lộ/i.test(r.name))||d.roads.slice().sort((a,b)=>b.len-a.len)[0]||null;
  log(d.roads.length?`Đường quanh dự án: ${d.roads.map(r=>r.name).join(', ')}${d.front?' · mặt tiền: '+d.front:''}`:'Không lấy được tên đường.');
  // 4) sông/hồ gần (chữ lớn kiểu "SÔNG HÀN")

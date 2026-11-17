@@ -96,7 +96,7 @@ try {
   await page.goto("file://" + path.join(here, "render.html"));
   // Phong cách có lời đọc: lấy dữ liệu + câu đọc → đọc thành tiếng → cảnh dài theo lời
   let say = [], voice = null, durs = [];
-  if (["navy", "quyhoach"].includes(job.style)) {
+  if (["navy", "quyhoach"].includes(job.style) && job.voice !== false) {
     const prep = await page.evaluate((j) => window.prepareJob(j), job);
     say = prep.say || [];
     if (say.length && (await ttsAvailable())) {
