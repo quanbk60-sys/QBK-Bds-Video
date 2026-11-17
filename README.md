@@ -14,6 +14,17 @@ tải ảnh/video, thêm kịch bản (không bắt buộc), bấm **Hoàn tất
 
 Đăng lại sau khi sửa: `node scripts/build-artifact.mjs` rồi đăng `dist/artifact/index.html` (kèm `map-engine.js`) lên cùng link.
 
+## 4 phong cách (chọn ở bước 1)
+
+| Phong cách | Học từ | Hình | Tiếng |
+|---|---|---|---|
+| Drone neon | Video mẫu 1 | Ảnh flycam, đường neon xanh ngọc, ghim vàng, thẻ ảnh, tiêu đề 3 dòng | Chỉ nhạc |
+| Vệ tinh Google | Video mẫu 2 | Vệ tinh nhìn thẳng, tia xanh dọc đường + nhãn, ghim vàng, vòng tròn, lô đất m², bong bóng ảnh | Chỉ nhạc |
+| Bản đồ xanh navy | Video mẫu 3 | Bản đồ navy, thẻ dự án, mũi tên xanh lá + km, tên đường chạy dọc đường | Giọng nữ nhanh |
+| Quy hoạch lô đất | Video mẫu 4 | Bay từ Việt Nam vào tỉnh, xã, chấm đỏ, quạt bán kính, nhãn đỏ, mũi tên đứt + km | Giọng đều, trầm |
+
+Bản đồ: `app/map-styles.js` (Photon, OSRM, Nominatim, ảnh Esri). Giọng đọc: `server/tts.js` (Piper, chạy trên máy: `pip install piper-tts`). Lời đọc chỉ dùng dữ liệu bản đồ và thông tin lô đất người dùng nhập.
+
 ## Chạy trên máy (đủ tính năng: bản đồ vệ tinh, MP4 1080×1920)
 
 Cần **Node.js 20+** và **FFmpeg** (`ffmpeg -version` chạy được).
