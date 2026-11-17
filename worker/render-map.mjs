@@ -71,8 +71,35 @@ async function resolvePoint(job) {
     const [rlon, rlat] = ref.geometry.coordinates;
     return { ...recoverNearest(pc.code, rlat, rlon), how: "Plus Code", label: pc.rest };
   }
-  const f = photon(query);
-  if (!f) throw new Error(`Không tìm thấy "${query}" trên bản đồ. Hãy dán tọa độ hoặc link Google Maps.`);
+  // Tìm theo tên/địa chỉ: chỉ nhận kết quả chứa đủ các từ đã nhập (tránh dựng nhầm chỗ, vd "Nam Long 2" ra cầu ở Thủ Đức).
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase();
+  const words = (t) => norm(t).split(/[^a-z0-9]+/).filter((w) => w && !/^(tp|thanh|pho|quan|huyen|phuong|xa|tinh|vn|du|an|khu|dan|cu|hcm|tphcm|hn|tp\.hcm)$/.test(w) || /^\d+$/.test(w));
+  const hayOf = (f) => { const p = f.properties || {}; return " " + norm([p.name, p.street, p.district, p.city, p.county, p.state].join(" ")).replace(/[^a-z0-9]+/g, " ") + " "; };
+  const has = (hay, ws) => ws.every((w) => hay.includes(" " + w + " "));
+  const parts = query.split(",").map((x) => x.trim()).filter(Boolean);
+  const headW = words(parts[0]).length ? words(parts[0]) : norm(parts[0]).split(/[^a-z0-9]+/).filter(Boolean);
+  let f = null, first = null;
+  // 1) Nominatim (OpenStreetMap): hiểu địa chỉ Việt Nam tốt hơn. Nhận kết quả có đủ từ của tên và địa chỉ đã nhập.
+  const nomi = (q) => { try { return JSON.parse(curl(["-A", "bds-map-worker/1.0", `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=vn&limit=5&q=${encodeURIComponent(q)}`])); } catch (e) { return []; } };
+  for (const n of [...new Set([parts.length, 1])]) {
+    const need = [...headW, ...words(parts.slice(1, n).join(" "))];
+    const rs = nomi(parts.slice(0, n).join(", "));
+    const nameOk = (x) => has(" " + norm(x.name || x.display_name.split(",")[0]).replace(/[^a-z0-9]+/g, " ") + " ", headW);
+    const hit = rs.find((x) => nameOk(x) && has(" " + norm(x.display_name).replace(/[^a-z0-9]+/g, " ") + " ", need)) || (n > 1 ? rs.find(nameOk) : null);
+    if (hit) { f = { geometry: { coordinates: [+hit.lon, +hit.lat] }, properties: { name: hit.name || hit.display_name.split(",")[0], street: hit.display_name.split(",").slice(1, 3).join(",").trim(), extent: hit.boundingbox ? [+hit.boundingbox[2], +hit.boundingbox[1], +hit.boundingbox[3], +hit.boundingbox[0]] : null } }; break; }
+    execFileSync("sleep", ["1.1"]);
+  }
+  // 2) Photon dự phòng: thử đủ địa chỉ rồi bỏ dần phần cuối.
+  for (let n = parts.length; n >= 1 && !f; n--) {
+    const q = parts.slice(0, n).join(", ");
+    const all = JSON.parse(curl([`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&bbox=102.1,8.2,109.6,23.4`])).features || [];
+    first = first || all[0];
+    const need = [...headW, ...words(parts.slice(1, n).join(" "))];
+    const ok = all.filter((x) => has(hayOf(x), need));
+    const byName = (x) => has(" " + norm(x.properties?.name).replace(/[^a-z0-9]+/g, " ") + " ", headW);
+    f = ok.find(byName) || (n > 1 ? ok[0] : null);
+  }
+  if (!f) throw new Error(`Không tìm thấy chính xác "${query}" trên bản đồ${first ? ` (chỉ thấy chỗ gần giống: ${first.properties?.name || ""})` : ""}. Hãy nhập thêm địa chỉ (phường, quận, tỉnh), mã Plus Code, link Google Maps hoặc tọa độ.`);
   const p = f.properties || {};
   const label = [p.name, p.street, p.district || p.city, p.state].filter(Boolean).join(", ");
   return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], how: "tìm theo tên", label, feature: f };
