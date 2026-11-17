@@ -25,6 +25,10 @@ const fmtKm=v=>v<1?Math.round(v*1000/10)*10+'m':(v<10?v.toFixed(1).replace('.','
 const fmtKmSay=v=>v<1?Math.round(v*1000/10)*10+' m':(v<10?v.toFixed(1).replace('.',',').replace(/,0$/,''):Math.round(v))+' km';
 const norm=t=>(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/gi,'d').toLowerCase().replace(/\s+/g,' ').trim();
 const UA_HDR={'Accept-Language':'vi'};
+// tên ngắn cho nhãn trên video: "Trường Trung học phổ thông chuyên Lý Tự Trọng" -> "THPT chuyên Lý Tự Trọng"
+const shortName=n=>{n=String(n||'').replace(/^Trường Trung học phổ thông/i,'THPT').replace(/^Trường Trung học cơ sở/i,'THCS').replace(/^Trường Tiểu học/i,'TH').replace(/^Trường Mầm non/i,'MN')
+ .replace(/^Bệnh viện/i,'BV').replace(/^Trung tâm thương mại/i,'TTTM').replace(/^Ủy ban nhân dân/i,'UBND').replace(/Thành phố/g,'TP').replace(/Sân bay quốc tế/i,'Sân bay QT').replace(/\s*\(.*?\)\s*/g,' ').trim();
+ return n.length>30?n.slice(0,29).replace(/\s+\S*$/,'')+'…':n;};
 
 async function getJSON(u,tries=3,opt){let err;for(let i=0;i<tries;i++){try{const r=await fetch(u,opt);if(r.ok)return await r.json();err=new Error('HTTP '+r.status);}catch(e){err=e;}await sleep(700*2**i);}throw err;}
 async function photon(q,P,tag,rKm){const dLat=rKm/111,dLon=rKm/(111*Math.cos(P.lat*Math.PI/180));
@@ -48,7 +52,7 @@ const CENTER_Q=[['ủy ban nhân dân','amenity:townhall','UBND'],['chợ','amen
 
 async function gather(cfg,log){
  const P={lat:+cfg.lat,lon:+cfg.lon},style=cfg.style;const d={near:[],far:[],roads:[],front:'',water:null,admin:null,center:null,town:null,mainRoad:null};
- const nearR=style==='quyhoach'?(+cfg.radiusKm||2.5):1.3;
+ const nearR=style==='quyhoach'?(+cfg.radiusKm||2.5):style==='navy'?1.3:2.5;
  const seen=new Set();const take=n=>{const k=norm(n);if(!k||seen.has(k))return false;seen.add(k);return true;};
  // 1) tiện ích gần
  for(const [q,tag,label,icon] of NEAR){try{const fs=(await photon(q,P,tag,nearR+0.5)).map(f=>({f,d:km(P,fpos(f))})).filter(x=>x.f.properties.name&&x.d<=nearR&&x.d>0.05&&!BAD.test(x.f.properties.name)).sort((a,b)=>a.d-b.d);
@@ -179,19 +183,20 @@ function build(cfg,d,durs){
   const road=d.roads.find(r=>r.pts.length>1&&r.first<600)||d.roads[0];
   shot(1,2.8,(t0,dt)=>{key(t0+dt,at(16.25));
    layer(t0+0.2,1e9,(S,a,τ)=>{if(road)beam(S,lineM(road.pts),a,road.name);},1.4);
-   layer(t0+0.9,1e9,(S,a)=>pinY(S(PX[0],PX[1]),a,'VỊ TRÍ ĐẤT',true,'home'));});
-  if(near.length)shot(2,5,(t0,dt)=>{key(t0+dt,at(15.9));
-   layer(t0,1e9,(S,a)=>ringY(S,PX,(near[near.length-1].km*1.08)/kmPerMx,a),1.2);
-   near.forEach((p,i)=>layer(t0+0.6+i*0.55,1e9,(S,a)=>pinY(S(...toM(p)),a,p.label,false,p.icon),0.45));});
+   layer(t0+0.9,1e9,(S,a)=>pinY(S(PX[0],PX[1]),a,(cfg.name||'VỊ TRÍ ĐẤT').toUpperCase(),true,'home'));});
+  if(near.length)shot(2,Math.max(5,1.6+near.length*0.8),(t0,dt)=>{const cam=fitZ([PX,...near.map(toM)],[70,280,W-70,H-170],0,16.2);key(t0+1,cam);key(t0+dt,{...cam,z:cam.z-0.08});
+   const te=far.length?t0+dt:1e9;
+   layer(t0,te,(S,a)=>ringY(S,PX,(near[near.length-1].km*1.08)/kmPerMx,a),1.2);
+   near.forEach((p,i)=>layer(t0+1.0+i*0.7,te,(S,a)=>pinY(S(...toM(p)),a,shortName(p.name)+' · '+fmtKm(p.km),false,p.icon),0.45));});
   const F=cfg.facts||{};const lw=+String(F.width||'').replace(',','.'),ll=+String(F.length||'').replace(',','.');
   if(lw>0&&ll>0){const zp=clamp(Math.log2(300/(Math.max(lw,ll)/1000/kmPerMx*256)),17,20.5);shot(-1,4.5,(t0,dt)=>{key(t0+1.2,at(zp));key(t0+dt-0.3,at(zp+0.05));
    layer(t0+1.3,t0+dt,(S,a)=>plotBlue(S,lw,ll,a,F.area),1.6,0.3);});}
-  const fx=far.slice(0,2);
-  if(fx.length)shot(3,6,(t0,dt)=>{const cam=fitZ([PX,...fx.map(toM)],[90,300,W-90,H-200],0,15.5);key(t0+1.4,cam);key(t0+dt,{...cam,z:cam.z-0.15});
+  // điểm mốc xa: mỗi cảnh 2 điểm, bong bóng ảnh vệ tinh kèm tên + khoảng cách
+  [far.slice(0,2),far.slice(2,4)].filter(g=>g.length).forEach((fx,gi,gs)=>shot(3+gi,6,(t0,dt)=>{const t1=gi<gs.length-1?t0+dt:1e9;const cam=fitZ([PX,...fx.map(toM)],[90,320,W-90,H-200],0,15.5);key(t0+1.4,cam);key(t0+dt,{...cam,z:cam.z-0.15});
    const cs=fx.map(cropOf);
-   layer(t0+1.2,1e9,(S,a)=>{dashedY(S,[...fx.map(toM)].length>1?[toM(fx[0]),PX,toM(fx[1])]:[PX,toM(fx[0])],a);},1.4);
-   fx.forEach((p,i)=>layer(t0+1.6+i*0.5,1e9,(S,a,τ)=>bubble(S(...toM(p)),cs[i],a,τ),0.6));});
-  shot(4,2.6,(t0,dt)=>{key(t0+dt,at(12.4));});
+   layer(t0+1.2,t1,(S,a)=>{dashedY(S,fx.length>1?[toM(fx[0]),PX,toM(fx[1])]:[PX,toM(fx[0])],a);},1.4);
+   fx.forEach((p,i)=>layer(t0+1.6+i*0.5,t1,(S,a,τ)=>bubble(S(...toM(p)),cs[i],a,τ,shortName(p.name)+' · '+fmtKm(p.km)),0.6));}));
+  shot(9,2.6,(t0,dt)=>{key(t0+dt,at(12.4));});
  }
  else if(style==='navy'){
   const f01=far.slice(0,2);
@@ -306,10 +311,13 @@ function build(cfg,d,durs){
    X.font=FONT(800,20);X.fillStyle='#fff';X.fillText(String(wid).replace('.',',')+'m',p[0],p[1]+h/2+36);X.save();X.translate(p[0]+w/2+34,p[1]);X.rotate(Math.PI/2);X.fillText(String(len).replace('.',',')+'m',0,0);X.restore();}
   X.restore();}
  function dashedY(S,pts,a){const {pts:q}=pathOf(S,pts,ease(a));X.save();X.setLineDash([10,8]);X.strokeStyle='#ffe100';X.lineWidth=3;stroke(q);X.stroke();X.restore();}
- function bubble(p,c,a,τ){if(a<=0)return;const r=58*back(a);const cx=keepIn(p[0],2*r+8),cy=Math.max(260,p[1]-r-46);X.save();X.globalAlpha=clamp(a*2);
+ function bubble(p,c,a,τ,label){if(a<=0)return;const r=58*back(a);const cx=keepIn(p[0],2*r+8),cy=Math.max(260,p[1]-r-46);X.save();X.globalAlpha=clamp(a*2);
   X.fillStyle='rgba(255,255,255,.55)';X.beginPath();X.moveTo(cx-r*0.55,cy+r*0.6);X.lineTo(p[0],p[1]);X.lineTo(cx+r*0.55,cy+r*0.6);X.closePath();X.fill();
   X.beginPath();X.arc(cx,cy,r,0,7);X.save();X.clip();if(c.img){const s=1.25+0.05*Math.sin(τ);X.drawImage(c.img,cx-r*s,cy-r*s,2*r*s,2*r*s);}else{X.fillStyle='#334';X.fill();}X.restore();
-  X.lineWidth=3;X.strokeStyle='#fff';X.stroke();X.restore();RECTS.push([cx-r,cy-r,cx+r,cy+r]);}
+  X.lineWidth=3;X.strokeStyle='#fff';X.stroke();
+  if(label&&a>0.5){const fs=fitFont(label,800,14,9,Math.min(240,W-2*M));const w=X.measureText(label).width;const lx=keepIn(cx,w+16);let ly=cy-r-12;const hit=y=>RECTS.some(q=>q[0]<lx+w/2+8&&q[2]>lx-w/2-8&&q[1]<y+6&&q[3]>y-fs-4);if(hit(ly))ly=cy+r+fs+12;
+   X.fillStyle='rgba(0,0,0,.62)';X.beginPath();X.roundRect(lx-w/2-8,ly-fs-4,w+16,fs+10,6);X.fill();X.textAlign='center';X.textBaseline='alphabetic';X.fillStyle='#fff';X.fillText(label,lx,ly);RECTS.push([lx-w/2-8,ly-fs-4,lx+w/2+8,ly+6]);}
+  X.restore();RECTS.push([cx-r,cy-r,cx+r,cy+r]);}
  // navy
  function projCard(p,a,τ,c){if(a<=0)return;const e=back(a);const cw=128,chh=74,x=keepIn(p[0],cw),y=p[1]-118;X.save();X.globalAlpha=clamp(a*2);
   for(let k=0;k<2;k++){const ph=((τ*0.8)+k*0.5)%1;X.strokeStyle=`rgba(255,255,255,${0.7*(1-ph)})`;X.lineWidth=1.5;X.beginPath();X.ellipse(p[0],p[1],6+20*ph,2.5+8*ph,0,0,7);X.stroke();}
