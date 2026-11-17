@@ -15,7 +15,7 @@ const VOICE_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/main/vi/v
 export const VOICE_DIR = process.env.PIPER_VOICE_DIR || path.join(os.homedir(), ".cache", "qbk-piper");
 export const PRESETS = {
   "nu-nhanh": { length: 1.12, pitch: 0.94, tempo: 0.88, label: "Nữ, nhanh, rõ (giống video bản đồ xanh navy)" },
-  "tram": { length: 1.2, pitch: 0.72, tempo: 0.86, label: "Đều, chậm, trầm (giống video quy hoạch lô đất)" },
+  "tram": { length: 1.2, pitch: 0.82, tempo: 0.88, label: "Đều, chậm, trầm (giống video quy hoạch lô đất)" },
 };
 
 let ready = null;

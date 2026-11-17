@@ -138,7 +138,9 @@ function narration(cfg,d){
  return out;
 }
 // chữ cho máy đọc: số, km, m² đọc ra tiếng
-function ttsText(t){return t.replace(/(\d+),(\d+)\s?km\b/g,'$1 phẩy $2 ki lô mét').replace(/(\d+)\s?km\b/g,'$1 ki lô mét').replace(/(\d+),(\d+)\s?m\b/g,'$1 phẩy $2 mét').replace(/(\d+)\s?m²/g,'$1 mét vuông').replace(/(\d+)\s?m\b/g,'$1 mét')
+function ttsText(t){const E='(?![\\p{L}\\d])';const re=(x)=>new RegExp(x,'gu');
+ return t.replace(re('(\\d+),(\\d+)\\s?km'+E),'$1 phẩy $2 ki lô mét').replace(re('(\\d+)\\s?km'+E),'$1 ki lô mét').replace(re('(\\d+)\\s?m²'),'$1 mét vuông')
+ .replace(re('(\\d+),(\\d+)\\s?m'+E),'$1 phẩy $2 mét').replace(re('(\\d+)\\s?m'+E),'$1 mét')
  .replace(/\bQL\s?(\d+)/gi,'quốc lộ $1').replace(/\bĐT\s?(\d+)/g,'đường tỉnh $1').replace(/\bUBND\b/g,'ủy ban nhân dân').replace(/\bTP\.?\s/g,'thành phố ').replace(/\bTX\.?\s/g,'thị xã ');}
 
 // ---------- Engine ----------
