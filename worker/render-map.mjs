@@ -124,7 +124,7 @@ try {
     await mixTrack(items, wav);
     execFileSync("ffmpeg", ["-y", "-v", "error", "-i", outFile, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", muxed]);
     fs.renameSync(muxed, outFile); fs.rmSync(wav, { force: true });
-    res.voice = { say: say.map((x) => ({ shot: x.shot, text: x.text })), tail, end: tt };
+    res.voice = { say: say.map((x) => ({ shot: x.shot, text: x.text })), tail, end: tt, engine: voice.engine || "" };
   }
   res.place = place;
   fs.writeFileSync(metaFile, JSON.stringify(res, null, 1));
