@@ -9,6 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { synthesize, mixTrack, ttsAvailable } from "../server/tts.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // Playwright + Chromium cài sẵn trong máy chủ đám mây (nạp qua require để dùng bản toàn cục).
@@ -82,24 +83,49 @@ try {
   const page = await browser.newPage({ viewport: { width: 576, height: 1024 } });
   page.on("console", (m) => { if (m.text().startsWith("[map]")) console.log(m.text()); });
   // Photon/OSRM đi qua curl (trình duyệt sau proxy đôi khi rớt kết nối tới hai máy chủ này); ảnh vệ tinh tải thẳng trong trang.
-  await page.route(/photon\.komoot\.io|router\.project-osrm\.org/, async (route) => {
+  await page.route(/photon\.komoot\.io|router\.project-osrm\.org|nominatim\.openstreetmap\.org/, async (route) => {
     const u = route.request().url();
     for (let i = 0; i < 3; i++) {
       try {
-        const body = execFileSync("curl", ["-sS", "-m", "40", "--fail", u]).toString();
+        const body = execFileSync("curl", ["-sS", "-m", "40", "--fail", "-A", "QBK-BDS-Video/1.0 (map video renderer)", u]).toString();
         return route.fulfill({ status: 200, headers: { "access-control-allow-origin": "*", "content-type": "application/json" }, body });
       } catch { await new Promise((r) => setTimeout(r, 1000 * (i + 1))); }
     }
     return route.abort();
   });
   await page.goto("file://" + path.join(here, "render.html"));
-  const res = await page.evaluate((j) => window.runJob(j), job);
+  // Phong cách có lời đọc: lấy dữ liệu + câu đọc → đọc thành tiếng → cảnh dài theo lời
+  let say = [], voice = null, durs = [];
+  if (["navy", "quyhoach"].includes(job.style)) {
+    const prep = await page.evaluate((j) => window.prepareJob(j), job);
+    say = prep.say || [];
+    if (say.length && (await ttsAvailable())) {
+      const preset = job.style === "navy" ? "nu-nhanh" : "tram";
+      voice = await synthesize(say.map((x) => x.tts || x.text), preset);
+      say.forEach((x, i) => { if (x.shot >= 0) durs[x.shot] = (durs[x.shot] || 0) + voice[i].dur + 0.15; });
+      console.log(`Lời đọc: ${say.length} câu, giọng ${preset}, ${voice.reduce((a, v) => a + v.dur, 0).toFixed(1)}s`);
+    } else if (say.length) console.log("Không có Piper: dựng không lời (cài: pip install piper-tts).");
+  }
+  const res = await page.evaluate(([j, d]) => window.runJob(j, d), [job, durs]);
   const tmp = path.join(os.tmpdir(), `map-${Date.now()}.webm`);
   fs.writeFileSync(tmp, Buffer.from(res.webm, "base64"));
   execFileSync("ffmpeg", ["-y", "-v", "error", "-fflags", "+genpts", "-i", tmp, "-vf", "fps=30,format=yuv420p",
     "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-movflags", "+faststart", "-an", outFile]);
   fs.rmSync(tmp, { force: true });
   delete res.webm;
+  if (voice) { // ghép lời đọc vào rãnh tiếng của video bản đồ; câu shot=-1 nói tiếp sau bản đồ (lúc app chiếu ảnh/flycam)
+    const items = [], tail = []; const used = {};
+    say.forEach((x, i) => {
+      if (x.shot >= 0 && res.shots[x.shot]) { const t = res.shots[x.shot].t0 + 0.3 + (used[x.shot] || 0); used[x.shot] = (used[x.shot] || 0) + voice[i].dur + 0.15; items.push({ file: voice[i].file, t: (res.TI || 0) + t }); }
+    });
+    let tt = (res.TI || 0) + res.T + 0.4;
+    say.forEach((x, i) => { if (x.shot < 0) { items.push({ file: voice[i].file, t: tt }); tail.push({ t: tt, dur: voice[i].dur, text: x.text }); tt += voice[i].dur + 0.35; } });
+    const wav = outFile.replace(/\.mp4$/, "") + "-voice.wav", muxed = outFile + ".tmp.mp4";
+    await mixTrack(items, wav);
+    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", outFile, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", muxed]);
+    fs.renameSync(muxed, outFile); fs.rmSync(wav, { force: true });
+    res.voice = { say: say.map((x) => ({ shot: x.shot, text: x.text })), tail, end: tt };
+  }
   res.place = place;
   fs.writeFileSync(metaFile, JSON.stringify(res, null, 1));
   console.log(`Xong: ${outFile} (${(fs.statSync(outFile).size / 1e6).toFixed(1)} MB), ${res.themes.length} cảnh, trễ ${res.late} khung`);

@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createAgents, AgentError, MODEL, hasClaudeCredentials } from "./agents.js";
 import { hasFfmpeg, toMp4, RESOLUTIONS } from "./export.js";
+import { ttsAvailable, synthesize, PRESETS } from "./tts.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const APP_DIR = path.join(here, "..", "app");
@@ -32,7 +33,7 @@ export function createApp({ agents = createAgents(), claudeAvailable } = {}) {
 
   app.get("/api/health", async (req, res) => {
     if (ffmpegOk === null) ffmpegOk = await hasFfmpeg();
-    res.json({ ok: true, claude: claudeOk(), model: MODEL, ffmpeg: ffmpegOk, resolutions: Object.keys(RESOLUTIONS) });
+    res.json({ ok: true, claude: claudeOk(), model: MODEL, ffmpeg: ffmpegOk, tts: await ttsAvailable(), resolutions: Object.keys(RESOLUTIONS) });
   });
 
   const wrap = (fn) => async (req, res) => {
@@ -46,6 +47,17 @@ export function createApp({ agents = createAgents(), claudeAvailable } = {}) {
   app.post("/api/agents/media", wrap((b) => agents.analyzeMedia(b)));
   app.post("/api/agents/script", wrap((b) => agents.writeScript(b)));
   app.post("/api/agents/qa", wrap((b) => agents.reviewFrames(b)));
+  // Giọng đọc: {texts: [...], preset: "nu-nhanh"|"tram"} → {items: [{dur, wav (base64)}]}
+  app.post("/api/tts", wrap(async (b) => {
+    if (!(await ttsAvailable())) throw new AgentError("Máy chủ chưa có giọng đọc: cài bằng lệnh pip install piper-tts.", 503);
+    const texts = (Array.isArray(b.texts) ? b.texts : []).map((t) => String(t || "").trim().slice(0, 600)).filter(Boolean).slice(0, 12);
+    if (!texts.length) throw new AgentError("Chưa có câu nào để đọc.", 400);
+    const dir = fs.mkdtempSync(path.join(tmpRoot, "tts-"));
+    try {
+      const out = await synthesize(texts, PRESETS[b.preset] ? b.preset : "nu-nhanh", dir);
+      return { items: out.map((o) => ({ dur: o.dur, wav: fs.readFileSync(o.file).toString("base64") })) };
+    } finally { fs.rm(dir, { recursive: true, force: true }, () => {}); }
+  }));
 
   app.post("/api/export", upload.fields([{ name: "video", maxCount: 1 }, { name: "music", maxCount: 1 }]), async (req, res) => {
     const video = req.files?.video?.[0], music = req.files?.music?.[0];
